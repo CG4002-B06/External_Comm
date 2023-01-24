@@ -79,7 +79,7 @@ class Player:
         self.remain_bullet -= 1
         self.action = Action.SHOOTING
 
-    # TO DO: missing the code when user activates a shield
+    # TODO: missing the code when user activates a shield
     def __process_shot(self):
         if self.hp <= Player.bullet_damage:
             self.__resurge()
@@ -92,7 +92,7 @@ class Player:
         self.remain_grenade -= 1
         self.action = Action.GRENADING
 
-    # TO DO: missing the code when user activates a shield        
+    # TODO: missing the code when user activates a shield        
     def __process_grenaded(self):
         if self.hp <= Player.grenade_damage:
             self.__resurge()

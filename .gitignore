@@ -1,2 +1,4 @@
 .DS_Store
-kafka*/*
+bin/*
+lib/*
+pyvenv.cfg
