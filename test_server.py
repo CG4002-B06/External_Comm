@@ -2,7 +2,7 @@ from socket import *
 import concurrent.futures
 
 server_port = 6666
-MAX_CONNECTIONS = 2
+MAX_CONNECTIONS = 3
 
 server_socket = socket(AF_INET, SOCK_STREAM)
 server_socket.bind(('', server_port))
@@ -13,7 +13,7 @@ def serve_connection(client, addr):
     while True:
         message = client.recv(2048)
         client.send(message)
-        print("receive message: " + message)
+        print("receive message: " + str(message))
         if message.decode() == 'close':
             break
 
@@ -23,6 +23,6 @@ if __name__ == "__main__":
 
     while True:  
         connection_socket, client_addr = server_socket.accept()
-        executor.submit(serve_connection, connection_socket, client_addr)
-        
+        print("accept requests")
+        future = executor.submit(serve_connection, connection_socket, client_addr)
     server_socket.close()
