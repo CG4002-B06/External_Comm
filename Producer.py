@@ -4,7 +4,7 @@ from paho import mqtt
 
 class Producer(Thread):
     def __init__(self, queue):
-        Thread.__init__(self)
+        super().__init__()
         self.queue = queue
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
