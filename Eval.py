@@ -28,17 +28,18 @@ class Eval(Thread):
         return cipher_text
 
     def __send(self, plain_text):
-        sent_hash_value = hashlib.sha1(byte(plain_text, "utf8")).hexdigest()
         encrypted_text = self.__encrypt(plain_text)
         received = self.socket.sendall(encrypted_text)
-        received_hash_value = hashlib.sha1(byte(received, "utf8")).hexdigest()
-        if (sent_hash_value != received_hash_value):
-            self.main_thread_queue.put(received)
+        return received
+       
     
     def run(self):
         while True:
             data = self.eval_queue.get()
-            self.__send(data)
-    
-
-        
+            sent_hash_value = hashlib.sha1(byte(data, "utf8")).hexdigest()
+            
+            received_data = self.__send(data) # send data to eval server for checking
+            
+            received_hash_value = hashlib.sha1(byte(received_data, "utf8")).hexdigest()
+            if (sent_hash_value != received_hash_value):
+                self.main_thread_queue.put(received)
