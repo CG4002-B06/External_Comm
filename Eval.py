@@ -1,13 +1,11 @@
 import socket
-import hashlib
 
-from threading import Thread
 from Crypto.Cipher import AES
 from Crypto import Random
 from Crypto.Util.Padding import pad
 from base64 import b64encode
 
-class Eval(Thread):
+class Eval:
 
     def __init__(self, ip_addr, port_num, eval_queue):
         super().__init__()
@@ -26,7 +24,7 @@ class Eval(Thread):
         cipher_text = b64encode(iv + cipher.encrypt(pad(encoded_text, AES.block_size)))
         return cipher_text
 
-    def __send_and_receive(self, plain_text):
+    def send_and_receive(self, plain_text):
         encrypted_text = self.__encrypt(plain_text)
         length = str(len(encrypted_text))
         self.socket.sendall(length.encode("utf8") + b'_' + encrypted_text)
@@ -44,15 +42,8 @@ class Eval(Thread):
             data += self.socket.recv(length - len(data))
                 
         msg = data.decode("utf8")
+        print("receive data from eval server: " + msg) 
         return msg
-
-       
-    
-    def run(self):
-        while True:
-            data = self.eval_queue.get()
-            received_data = self.__send_and_receive(data) # send data to eval server for checking
-            print("received data: " + received_data)
             
             
             

@@ -1,4 +1,5 @@
 import datetime
+import json
 from Actions import Action 
 
 class Player:
@@ -16,7 +17,7 @@ class Player:
 
     def __init__(self):
         self.hp = Player.max_hp
-        self.remain_shield_number = Player.max_shield_number
+        self.remain_shield = Player.max_shield_number
         self.last_shield_active_time = datetime.datetime.min
         self.shield_remain_hp = Player.shield_max_hp
         self.remain_bullet = Player.max_bullet_number
@@ -26,11 +27,25 @@ class Player:
     
     def __str__(self):
         return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have dead {} times".format(
-            self.hp, self.remain_grenade, self.remain_shield_number, self.remain_bullet, self.action, self.num_death)
+            self.hp, self.remain_grenade, self.remain_shield, self.remain_bullet, self.action, self.num_death)
 
+    def get_status(self):
+        status = {
+            "hp": self.hp,
+            "action": self.action,
+            "bullets": self.remain_bullet,
+            "grenades": self.remain_bullet,
+            "shield_time": ,
+            "shield_health": ,
+            "num_deaths": self.num_death,
+            "num_shield": self.remain_shield
+        }
+        return status
+
+    
     def __resurge(self):
         self.hp = Player.max_hp
-        self.remain_shield_number = Player.max_shield_number
+        self.remain_shield = Player.max_shield_number
         self.last_shield_active_time = datetime.datetime.min
         self.remain_bullet = Player.max_bullet_number
         self.remain_grenade = Player.max_grenade_number
@@ -65,6 +80,11 @@ class Player:
         
         else:
             self.action == Action.NONE
+
+    def status_check(self, expected_status):
+        #TODO: check and correct players' status
+        #return true if update is needed. Otherwise, return false
+
     
 
     def __process_reload(self):
@@ -100,9 +120,9 @@ class Player:
             self.hp -= Player.grenade_damage 
     
     def __process_shield(self):
-        if self.remain_shield_number <= 0 or (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10:
+        if self.remain_shield <= 0 or (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10:
             return
-        self.remain_shield_number -= 1
+        self.remain_shield -= 1
         self.action = Action.SHIELD
         self.last_shield_active_time = datetime.datetime.now()
         self.shield_remain_hp = Player.shield_max_hp
