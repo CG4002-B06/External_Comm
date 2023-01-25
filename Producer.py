@@ -16,6 +16,6 @@ class Producer(Thread):
         while True:
             action = self.queue.get()
             print("receive action data: " + action)
-            self.client.publish("p/player1", payload=action, qos=2)
+            self.client.publish("publisher/player1", payload=action, qos=2)
             self.client.publish("publisher/player2", payload=action, qos=2)
         print("stop")
