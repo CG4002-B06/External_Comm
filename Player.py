@@ -25,7 +25,7 @@ class Player:
         self.num_death = 0
     
     def __str__(self):
-        return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have dead {} times".format(
+        return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have died {} times".format(
             self.hp, self.remain_grenade, self.remain_shield_number, self.remain_bullet, self.action, self.num_death)
 
     def __resurge(self):
@@ -68,21 +68,32 @@ class Player:
     
 
     def __process_reload(self):
-        if self.remain_bullet > 0:
+        if self.remain_bullet > 0: # Send warning message
             return
         self.remain_bullet = Player.max_bullet_number
         self.action = Action.RELOAD
     
-    def __process_shooting(self):
-        if self.remain_bullet <= 0:
+    def __process_shooting(self): 
+        if self.remain_bullet <= 0: # Send warning message
             return
         self.remain_bullet -= 1
         self.action = Action.SHOOTING
 
-    # TODO: missing the code when user activates a shield
+    # TODO: missing the code when user activates a shield. DONE, PLZ CHECK
     def __process_shot(self):
         if self.hp <= Player.bullet_damage:
             self.__resurge()
+
+        if self.shield_remain_hp == Player.bullet_damage: # Player shot with 10 shield_hp will lose the shield
+            self.shield_remain_hp = 0
+            self.remain_shield_number -= 1
+        elif self.shield_remain_hp < Player.bullet_damage: # Player shot with less than 10 shield_hp will lose the shield and lose the some hp
+            self.shield_remain_hp = 0
+            self.remain_shield_number -= 1
+            self.hp -= Player.bullet_damage - self.shield_remain_hp
+        elif self.shield_remain_hp > Player.bullet_damage: # Player shot with more than 10 shield_hp
+            self.shield_remain_hp -= Player.bullet_damage 
+
         else:
             self.hp -= Player.bullet_damage
         
@@ -92,15 +103,24 @@ class Player:
         self.remain_grenade -= 1
         self.action = Action.GRENADING
 
-    # TODO: missing the code when user activates a shield        
+    # TODO: missing the code when user activates a shield. DONE, PLZ CHECK      
     def __process_grenaded(self):
         if self.hp <= Player.grenade_damage:
             self.__resurge()
-        else:
+             
+        if self.shield_remain_hp == Player.grenade_damage: # Player shot with 30 shield_hp will lose the shield
+            self.shield_remain_hp = 0
+            self.remain_shield_number -= 1
+        elif self.shield_remain_hp < Player.grenade_damage: # Player shot with less than 30 shield_hp will lose the shield and lose the some hp
+            self.shield_remain_hp = 0
+            self.remain_shield_number -= 1
+            self.hp -= Player.grenade_damage - self.shield_remain_hp
+        
+        else:  
             self.hp -= Player.grenade_damage 
     
     def __process_shield(self):
-        if self.remain_shield_number <= 0 or (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10:
+        if self.remain_shield_number <= 0 or (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10: # Send warning message
             return
         self.remain_shield_number -= 1
         self.action = Action.SHIELD
