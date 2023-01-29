@@ -1,2 +1,2 @@
 Preliminary Architecture Diagramj
-![architecture diagram](./architecture%20diagram.png)
+![architecture diagram](./docs/architecture%20diagram.png)
