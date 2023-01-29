@@ -2,6 +2,7 @@ import datetime
 from constants.Actions import Action
 from constants.player_constant import *
 
+
 class Player:
     # basic status of players upon start or resurge
     max_hp = 100
@@ -18,10 +19,11 @@ class Player:
         self.hp = Player.max_hp
         self.num_shield = Player.max_shield_number
         self.last_shield_active_time = datetime.datetime.min
-        self.shield_health = Player.max_shield_hp
+        self.shield_health = 0
         self.bullets = Player.max_bullet_number
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
+        self.last_performed_action = Action.NONE
         self.num_deaths = 0
 
     def __str__(self):
@@ -32,12 +34,14 @@ class Player:
         self.opponent = opponent
 
     def get_status(self):
+        second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
+        shield_time = second_diff if 0 <= second_diff <= Player.shield_active_time else 0
         status = {
             "hp": self.hp,
-            "action": self.action,
+            "action": self.last_performed_action.value,
             "bullets": self.bullets,
-            "grenades": self.bullets,
-            "shield_time": self.shield_active_time,
+            "grenades": self.grenades,
+            "shield_time": shield_time,
             "shield_health": self.shield_health,
             "num_deaths": self.num_deaths,
             "num_shield": self.num_shield
@@ -54,15 +58,15 @@ class Player:
         self.num_deaths += 1
 
     def process_action(self, action):
-        if action == Action.RELOAD:
+        if action == Action.RELOAD.value:
             return self.__process_reload()
-        elif action == Action.SHOOT:
+        elif action == Action.SHOOT.value:
             return self.__process_shoot()
-        elif action == Action.GRENADE:
+        elif action == Action.GRENADE.value:
             return self.__process_grenade()
-        elif action == Action.SHIELD:
+        elif action == Action.SHIELD.value:
             return self.__process_shield()
-        elif action == Action.LOGOUT:
+        elif action == Action.LOGOUT.value:
             return self.__process_logout()
         return self.__process_none()
 
@@ -71,15 +75,16 @@ class Player:
         self.num_shield = expected_status.get("num_shield")
         self.bullets = expected_status.get("bullets")
         self.grenades = expected_status.get("grenades")
-        self.action = expected_status.get("action")
+        self.last_performed_action = Action(expected_status.get("action"))
         self.num_deaths = expected_status.get("num_deaths")
         self.last_shield_active_time = datetime.datetime.now() - \
                                        datetime.timedelta(seconds=expected_status.get("shield_time"))
 
     def __process_reload(self):
         result = {
-            "action": Action.RELOAD
+            "action": Action.RELOAD.value
         }
+        self.last_performed_action = Action.RELOAD
 
         if self.bullets > 0:
             result["invalid_action"] = RELOAD_ERROR_MESSAGE
@@ -91,9 +96,10 @@ class Player:
     def __process_shoot(self):
         # TODO: figure out if the shoot is a hit
         result = {
-            "action": Action.RELOAD,
+            "action": Action.RELOAD.value,
             "shot": True
         }
+        self.last_performed_action = Action.SHOOT
         if self.bullets <= 0:  # Send warning message
             result["invalid_action"] = SHOOT_ERROR_MESSAGE
         else:
@@ -105,8 +111,9 @@ class Player:
 
     def __process_grenade(self):
         result = {
-            "action": Action.GRENADE
+            "action": Action.GRENADE.value
         }
+        self.last_performed_action = Action.GRENADE
         if self.grenades <= 0:
             result["invalid_action"] = GRENADE_ERROR_MESSAGE
         else:
@@ -117,8 +124,9 @@ class Player:
 
     def __process_shield(self):
         result = {
-            "action": Action.SHIELD
+            "action": Action.SHIELD.value
         }
+        self.last_performed_action = Action.SHIELD
         if self.num_shield <= 0:
             result["invalid_action"] = SHIELD_ERROR_MESSAGE
         elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10:
@@ -132,46 +140,52 @@ class Player:
 
     def __process_logout(self):
         result = {
-            "action": Action.LOGOUT
+            "action": Action.LOGOUT.value
         }
-        self.action == Action.LOGOUT
+        self.last_performed_action = Action.LOGOUT
+        self.action = Action.LOGOUT
         return result
 
     def __process_none(self):
         result = {
-            "action": Action.NONE
+            "action": Action.NONE.value
         }
-        self.action == Action.NONE
+        self.last_performed_action = Action.NONE
+        self.action = Action.NONE
         return result
 
+    def __is_active_shield(self):
+        return (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= Player.shield_active_time \
+               and self.shield_health > 0
+
     def grenaded(self):
-        if self.hp <= Player.grenade_damage:
-            self.__resurge()
-
-        if self.shield_health == Player.grenade_damage:  # Player shot with 30 shield_hp will lose the shield
-            self.shield_health = 0
-            self.num_shield -= 1
-        elif self.shield_health < Player.grenade_damage:  # Player shot with less than 30 shield_hp will lose the shield and lose some hp
-            self.shield_health = 0
-            self.num_shield -= 1
-            self.hp -= Player.grenade_damage - self.shield_health
-
+        if self.__is_active_shield():
+            if self.shield_health >= Player.grenade_damage:  # Player shot with 30 shield_hp will lose the shield
+                self.shield_health = 0
+                self.num_shield -= 1
+            else:  # Player shot with less than 30 shield_hp will lose the shield and lose some hp
+                self.shield_health = 0
+                self.num_shield -= 1
+                self.hp -= Player.grenade_damage - self.shield_health
         else:
             self.hp -= Player.grenade_damage
 
-    def shot(self):
-        if self.hp <= Player.bullet_damage:
+        if self.hp <= 0:
             self.__resurge()
 
-        if self.shield_health == Player.bullet_damage:  # Player shot with 10 shield_hp will lose the shield
-            self.shield_health = 0
-            self.num_shield -= 1
-        elif self.shield_health < Player.bullet_damage:  # Player shot with less than 10 shield_hp will lose the shield and lose some hp
-            self.shield_health = 0
-            self.num_shield -= 1
-            self.hp -= Player.bullet_damage - self.shield_health
-        elif self.shield_health > Player.bullet_damage:  # Player shot with more than 10 shield_hp
-            self.shield_health -= Player.bullet_damage
-
+    def shot(self):
+        if self.__is_active_shield():
+            if self.shield_health == Player.bullet_damage:  # Player shot with 10 shield_hp will lose the shield
+                self.shield_health = 0
+                self.num_shield -= 1
+            elif self.shield_health < Player.bullet_damage:  # Player shot with less than 10 shield_hp will lose the shield and lose some hp
+                self.shield_health = 0
+                self.num_shield -= 1
+                self.hp -= Player.bullet_damage - self.shield_health
+            else:  # Player shot with more than 10 shield_hp
+                self.shield_health -= Player.bullet_damage
         else:
             self.hp -= Player.bullet_damage
+
+        if self.hp <= 0:
+            self.__resurge()

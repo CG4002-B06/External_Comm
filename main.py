@@ -1,7 +1,7 @@
 from queue import Queue
 from producer.Producer import Producer
 from game_engine.eval_client import Eval_Client
-import eval_server
+from constants import eval_server_constant
 from game_engine.GameEngine import GameEngine
 
 receive_metric_queue = Queue()  # queue to receive metrics from relay node
@@ -10,7 +10,7 @@ visualizer_queue = Queue()  # queue to send messages to the publisher
 
 
 if __name__ == '__main__':
-    eval_client = Eval_Client(eval_server.IP_ADDRESS, eval_server.PORT_NUMBER)
+    eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
     producer = Producer(visualizer_queue).start()
     game_engine = GameEngine(eval_client, action_queue, visualizer_queue).start()
 
