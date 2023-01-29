@@ -1,6 +1,6 @@
 import datetime
-from Actions import Action
-from constants.Player import *
+from constants.Actions import Action
+from constants.player_constant import *
 
 class Player:
     # basic status of players upon start or resurge

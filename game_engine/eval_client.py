@@ -6,7 +6,7 @@ from Crypto.Util.Padding import pad
 from base64 import b64encode
 
 
-class Eval:
+class Eval_Client:
 
     def __init__(self, ip_addr, port_num):
         super().__init__()

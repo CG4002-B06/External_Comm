@@ -2,8 +2,8 @@ import json
 import copy
 
 from threading import Thread
-from Player import Player
-from Actions import Action
+from constants.player_constant import Player
+from constants.Actions import Action
 from utils.player_utils import *
 
 def process(actions, players):
