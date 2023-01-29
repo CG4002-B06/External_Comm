@@ -1,4 +1,3 @@
-import paramiko
 from sshtunnel import SSHTunnelForwarder
 import os
 from socket import *
