@@ -17,10 +17,10 @@ class RelayServer:
     def request_process(self, client, addr):
         message = client.recv(2048)
         client.send(message)
+        print("receive message" + str(message))
         self.metrics_queue.put(message)
 
     def serve_request(self):
         while True:
             connection_socket, client_addr = self.server_socket.accept()
-            print("accept requests from" + str(client_addr))
             self.executor.submit(self.request_process, connection_socket, client_addr)
