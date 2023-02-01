@@ -23,7 +23,6 @@ class Player:
         self.bullets = Player.max_bullet_number
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
-        self.last_performed_action = Action.NONE
         self.num_deaths = 0
 
     def __str__(self):
@@ -38,7 +37,7 @@ class Player:
         shield_time = second_diff if 0 <= second_diff <= Player.shield_active_time else 0
         status = {
             "hp": self.hp,
-            "action": self.last_performed_action.value,
+            "action": self.action.value,
             "bullets": self.bullets,
             "grenades": self.grenades,
             "shield_time": shield_time,
@@ -75,7 +74,7 @@ class Player:
         self.num_shield = expected_status.get("num_shield")
         self.bullets = expected_status.get("bullets")
         self.grenades = expected_status.get("grenades")
-        self.last_performed_action = Action(expected_status.get("action"))
+        self.action = Action(expected_status.get("action"))
         self.num_deaths = expected_status.get("num_deaths")
         self.last_shield_active_time = datetime.datetime.now() - \
                                        datetime.timedelta(seconds=expected_status.get("shield_time"))
@@ -84,13 +83,12 @@ class Player:
         result = {
             "action": Action.RELOAD.value
         }
-        self.last_performed_action = Action.RELOAD
+        self.action = Action.RELOAD
 
         if self.bullets > 0:
             result["invalid_action"] = RELOAD_ERROR_MESSAGE
         else:
             self.bullets = Player.max_bullet_number
-            self.action = Action.RELOAD
         return result
 
     def __process_shoot(self):
@@ -99,12 +97,11 @@ class Player:
             "action": Action.RELOAD.value,
             "shot": True
         }
-        self.last_performed_action = Action.SHOOT
+        self.action = Action.SHOOT
         if self.bullets <= 0:  # Send warning message
             result["invalid_action"] = SHOOT_ERROR_MESSAGE
         else:
             self.bullets -= 1
-            self.action = Action.SHOOT
             self.opponent.shot()
 
         return result
@@ -113,12 +110,11 @@ class Player:
         result = {
             "action": Action.GRENADE.value
         }
-        self.last_performed_action = Action.GRENADE
+        self.action = Action.GRENADE
         if self.grenades <= 0:
             result["invalid_action"] = GRENADE_ERROR_MESSAGE
         else:
             self.grenades -= 1
-            self.action = Action.GRENADE
             self.opponent.grenaded()
         return result
 
@@ -126,14 +122,13 @@ class Player:
         result = {
             "action": Action.SHIELD.value
         }
-        self.last_performed_action = Action.SHIELD
+        self.action = Action.SHIELD
         if self.num_shield <= 0:
             result["invalid_action"] = SHIELD_ERROR_MESSAGE
         elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10:
             result["invalid_action"] = SHIELD_COOLDOWN_MESSAGE
         else:
             self.num_shield -= 1
-            self.action = Action.SHIELD
             self.last_shield_active_time = datetime.datetime.now()
             self.shield_health = Player.max_shield_hp
         return result
@@ -142,7 +137,6 @@ class Player:
         result = {
             "action": Action.LOGOUT.value
         }
-        self.last_performed_action = Action.LOGOUT
         self.action = Action.LOGOUT
         return result
 
@@ -150,7 +144,6 @@ class Player:
         result = {
             "action": Action.NONE.value
         }
-        self.last_performed_action = Action.NONE
         self.action = Action.NONE
         return result
 

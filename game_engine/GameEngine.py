@@ -45,7 +45,6 @@ class GameEngine(Thread):
 
             print(actions, expected_actions)
             if actions == expected_actions:
-                print("action matches")
                 if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                         status_has_discrepancy(self.players[1], expected_status.get("p2")):
                     self.__correct_status(expected_status)
@@ -53,7 +52,6 @@ class GameEngine(Thread):
                 else:
                     self.__send_normal_packet(process_result)
             else:
-                print("action mismatches")
                 reprocess_result = process(expected_actions, players_copy)
                 if status_has_discrepancy(players_copy[0], expected_status.get("p1")) or \
                         status_has_discrepancy(self.players[1], expected_status.get("p2")):
@@ -111,6 +109,6 @@ class GameEngine(Thread):
         self.visualizer_queue.put(json.dumps(message))
 
     def __correct_status(self, expected_status):
-        print("correct players status")
+        print("correct players status....")
         self.players[0].correct_status(expected_status.get("p1"))
         self.players[1].correct_status(expected_status.get("p2"))
