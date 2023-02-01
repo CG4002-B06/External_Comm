@@ -3,5 +3,4 @@ bin/*
 lib/*
 pyvenv.cfg
 .idea/*
-test/*
 .env

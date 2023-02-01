@@ -34,13 +34,14 @@ class Player:
 
     def get_status(self):
         second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
-        shield_time = second_diff if 0 <= second_diff <= Player.shield_active_time else 0
+        shield_remain_time = Player.shield_active_time - second_diff if 0 <= second_diff <= Player.shield_active_time else 0
+        self.shield_health = self.shield_health if self.__is_active_shield() else 0
         status = {
             "hp": self.hp,
             "action": self.action.value,
             "bullets": self.bullets,
             "grenades": self.grenades,
-            "shield_time": shield_time,
+            "shield_time": shield_remain_time,
             "shield_health": self.shield_health,
             "num_deaths": self.num_deaths,
             "num_shield": self.num_shield
@@ -161,6 +162,7 @@ class Player:
                 self.num_shield -= 1
                 self.hp -= Player.grenade_damage - self.shield_health
         else:
+            self.shield_health = 0
             self.hp -= Player.grenade_damage
 
         if self.hp <= 0:
@@ -179,6 +181,7 @@ class Player:
                 self.shield_health -= Player.bullet_damage
         else:
             self.hp -= Player.bullet_damage
+            self.shield_health = 0
 
         if self.hp <= 0:
             self.__resurge()
