@@ -3,5 +3,6 @@ bin/*
 lib/*
 pyvenv.cfg
 .idea/*
+*.pyc
 eval_sever/evaluation_logs/*
 .env

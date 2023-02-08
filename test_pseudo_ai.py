@@ -9,6 +9,7 @@ class PseudoAI(Thread):
         self.action_queue = action_queue
 
     def run(self):
+        print("ai is running...")
         while True:
             data = self.metrics_queue.get()
             print("ai passes data: " + str(data))
