@@ -11,7 +11,7 @@ class RelayServer:
         self.metrics_queue = metrics_queue
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
-        self.server_socket.listen()
+        self.server_socket.listen(1)
         self.executor = concurrent.futures.ThreadPoolExecutor(RelayServer.MAX_CONNECTIONS)
         
     def request_process(self, client, addr):
