@@ -35,6 +35,7 @@ class Player:
     def get_status(self):
         second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
         shield_remain_time = Player.shield_active_time - second_diff if 0 <= second_diff <= Player.shield_active_time else 0
+        print(self.last_shield_active_time)
         self.shield_health = self.shield_health if self.__is_active_shield() else 0
         status = {
             "hp": self.hp,
@@ -77,7 +78,8 @@ class Player:
         self.grenades = expected_status.get("grenades")
         self.action = Action(expected_status.get("action"))
         self.num_deaths = expected_status.get("num_deaths")
-        self.last_shield_active_time = datetime.datetime.now() - \
+        if expected_status.get("shield_time") != 0:
+            self.last_shield_active_time = datetime.datetime.now() - \
                                        datetime.timedelta(seconds=expected_status.get("shield_time"))
 
     def __process_reload(self):

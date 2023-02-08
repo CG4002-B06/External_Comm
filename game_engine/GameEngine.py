@@ -43,7 +43,6 @@ class GameEngine(Thread):
             expected_actions = [{"action": expected_status.get("p1").get("action"), "player": 0},
                                 {"action": expected_status.get("p2").get("action"), "player": 1}]
 
-            print(actions, expected_actions)
             if actions == expected_actions:
                 if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                         status_has_discrepancy(self.players[1], expected_status.get("p2")):
