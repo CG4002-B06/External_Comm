@@ -11,6 +11,7 @@ password = os.getenv('SSH_TUNNEL_PW')
 xilinx_password = os.getenv('XINLINX_PW')
 xilinx_ip = os.getenv('XINLINX_IP')
 
+
 # connecting to ultra96
 class UltraClient(threading.Thread):
     def __init__(self):
@@ -44,9 +45,10 @@ class UltraClient(threading.Thread):
         return tunnel2.local_bind_address
 
     def run(self):
-        add = self.start_tunnel()
+        # add = self.start_tunnel()
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect(add)
+        # self.client.connect(add)
+        self.client.connect(('localhost', 6666))
         print("[ULTRA96 CONNECTED] Connected to Ultra96")
 
         while True:

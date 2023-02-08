@@ -3,4 +3,5 @@ bin/*
 lib/*
 pyvenv.cfg
 .idea/*
+eval_sever/evaluation_logs/*
 .env

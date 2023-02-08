@@ -9,5 +9,6 @@ class PseudoAI(Thread):
         self.action_queue = action_queue
 
     def run(self):
-        data = self.metrics_queue.get()
-        self.action_queue.put(data)
+        while True:
+            data = self.metrics_queue.get()
+            self.action_queue.put(data)
