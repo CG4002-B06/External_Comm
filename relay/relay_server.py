@@ -21,6 +21,7 @@ class RelayServer:
         self.metrics_queue.put(message)
 
     def serve_request(self):
+        connection_socket, client_addr = self.server_socket.accept()
+        print("accept connection")
         while True:
-            connection_socket, client_addr = self.server_socket.accept()
             self.executor.submit(self.request_process, connection_socket, client_addr)
