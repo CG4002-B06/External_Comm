@@ -27,14 +27,24 @@ class GameEngine(Thread):
 
     def run(self):
         while True:
-            actions = [self.action_queue.get()]
-            if self.action_queue.qsize() > 0 and self.action_queue[0].get("player") != actions[0].get("player"):
-                actions.append(self.action_queue.get())
-            else:
-                actions.append({
+            # actions = [self.action_queue.get()]
+            actions = [
+                {
+                    "action": self.action_queue.get(),
+                    "player": 0
+                },
+                {
                     "action": Action.NONE.value,
-                    "player": (actions[0].get("player") + 1) % 2
-                })
+                    "player": 1
+                }
+            ]
+            # if self.action_queue.qsize() > 0 and self.action_queue[0].get("player") != actions[0].get("player"):
+            #     actions.append(self.action_queue.get())
+            # else:
+            #     actions.append({
+            #         "action": Action.NONE.value,
+            #         "player": (actions[0].get("player") + 1) % 2
+            #     })
             actions.sort(key=lambda x: x.get("player"))
             players_copy = copy.deepcopy(self.players)
             process_result = process(actions, self.players)
