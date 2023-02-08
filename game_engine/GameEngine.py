@@ -28,9 +28,11 @@ class GameEngine(Thread):
     def run(self):
         while True:
             # actions = [self.action_queue.get()]
+            action = self.action_queue.get()
+            print("engine gets data: " + action)
             actions = [
                 {
-                    "action": self.action_queue.get(),
+                    "action": action,
                     "player": 0
                 },
                 {
