@@ -11,7 +11,6 @@ password = os.getenv('SSH_TUNNEL_PW')
 xilinx_password = os.getenv('XINLINX_PW')
 xilinx_ip = os.getenv('XINLINX_IP')
 
-
 # connecting to ultra96
 class UltraClient(threading.Thread):
     def __init__(self):
@@ -52,7 +51,8 @@ class UltraClient(threading.Thread):
 
         while True:
             data = input("Some dummy data here: ")
+            if data == "stop":
+                break
             self.client.sendall(data.encode("utf8"))
-
         self.client.close()
         print("[CLOSED]")
