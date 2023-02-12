@@ -51,6 +51,7 @@ class UltraClient(threading.Thread):
     def run(self):
         add = self.start_tunnel()
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.client.connect(("localhost", 6666))
         self.client.connect(add)
         print("[ULTRA96 CONNECTED] Connected to Ultra96")
 

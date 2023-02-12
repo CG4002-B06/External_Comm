@@ -16,19 +16,38 @@ class RelayServer:
 
     def serve_request(self, connection_socket):
         while True:
-            receive_data_length = b''
-            while not receive_data_length.endswith(b'_'):
-                receive_data_length += connection_socket.recv(1)
+            try:
+                # decode to get length
+                data = b''
+                while not data.endswith(b'_'):
+                    _d = connection_socket.recv(1)
+                    if not _d:
+                        data = b''
+                        continue
+                    data += _d
+                if len(data) == 0:
+                    print('no more data from the client')
+                    break
+                data = data.decode("utf-8")
+                length = int(data[:-1])
 
-            receive_data_length = receive_data_length.decode("utf8")
-            length = int(receive_data_length[:-1])
-            data = b''
-            while len(data) < length:
-                data += connection_socket.recv(length - len(data))
-
-            message = data.decode("utf8")
-            print("receive message\t" + str(message))
-            self.metrics_queue.put(message)
+                # decode to get message
+                data = b''
+                while len(data) < length:
+                    _d = connection_socket.recv(length - len(data))
+                    if not _d:
+                        data = b''
+                        continue
+                    data += _d
+                if len(data) == 0:
+                    print('no more data from the client')
+                    break
+                msg = data.decode("utf8")
+                print("receive message: " + msg)
+                self.metrics_queue.put(msg)
+            except Exception:
+                print('Exception on Connection')
+                break
 
     def run(self):
         while True:
