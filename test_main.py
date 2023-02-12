@@ -15,5 +15,5 @@ if __name__ == '__main__':
     pseudoAI = PseudoAI(receive_metric_queue, action_queue).start()
     game_engine = GameEngine(eval_client, action_queue, visualizer_queue).start()
     producer = Producer(visualizer_queue).start()
-    server = RelayServer(receive_metric_queue).serve_request()
+    server = RelayServer(receive_metric_queue).run()
 

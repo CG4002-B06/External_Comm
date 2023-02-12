@@ -45,9 +45,8 @@ class UltraClient(threading.Thread):
         return tunnel2.local_bind_address
 
     def send_data(self, data):
-        m = str(len(data)) + '_'
-        self.client.sendall(m.encode("utf8"))
-        self.client.sendall(data.encode("utf8"))
+        self.client.sendall(str(len(data)).encode("utf8")
+                            + b'_' + data.encode("utf8"))
 
     def run(self):
         add = self.start_tunnel()
