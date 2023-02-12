@@ -15,8 +15,17 @@ class RelayServer:
         self.executor = concurrent.futures.ThreadPoolExecutor(RelayServer.MAX_CONNECTIONS)
         
     def request_process(self, client, addr):
-        message = client.recv(2048)
-        client.send(message)
+        receive_data_length = b''
+        while not receive_data_length.endswith(b'_'):
+            receive_data_length += client.recv(1)
+
+        receive_data_length = receive_data_length.decode("utf8")
+        length = int(receive_data_length[:-1])
+        data = b''
+        while len(data) < length:
+            data += client.recv(length - len(data))
+
+        message = data.decode("utf8")
         print("receive message" + str(message))
         self.metrics_queue.put(message)
 

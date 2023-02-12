@@ -44,6 +44,11 @@ class UltraClient(threading.Thread):
 
         return tunnel2.local_bind_address
 
+    def send_data(self, data):
+        m = str(len(data)) + '_'
+        self.client.sendall(m.encode("utf8"))
+        self.client.sendall(data.encode("utf8"))
+
     def run(self):
         add = self.start_tunnel()
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,6 +59,6 @@ class UltraClient(threading.Thread):
             data = input("Some dummy data here: ")
             if data == "stop":
                 break
-            self.client.sendall(data.encode("utf8"))
+            self.send_data(data)
         self.client.close()
         print("[CLOSED]")
