@@ -1,6 +1,7 @@
 import datetime
 from constants.Actions import Action
 from constants.player_constant import *
+from mqtt.Consumer import Consumer
 
 
 class Player:
@@ -14,7 +15,7 @@ class Player:
     bullet_damage = 10
     max_bullet_number = 6
 
-    def __init__(self):
+    def __init__(self, publisher_queue, consumer_queue):
         self.opponent = None
         self.hp = Player.max_hp
         self.num_shield = Player.max_shield_number
@@ -24,6 +25,8 @@ class Player:
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
         self.num_deaths = 0
+        self.publisher_queue = publisher_queue
+        self.consumer_queue = consumer_queue
 
     def __str__(self):
         return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have died {} times".format(
@@ -116,10 +119,14 @@ class Player:
         self.action = Action.GRENADE
         if self.grenades <= 0:
             result["invalid_action"] = GRENADE_ERROR_MESSAGE
-        else:
+            return result
+
+        self.publisher_queue.put(result)
+        is_in_view = bool(self.consumer_queue.get()["in_view"])
+        if is_in_view:
             self.grenades -= 1
             self.opponent.grenaded()
-        return result
+        return None
 
     def __process_shield(self):
         result = {

@@ -17,30 +17,24 @@ class RelayServer:
     def serve_request(self, connection_socket):
         while True:
             try:
-                # decode to get length
                 data = b''
                 while not data.endswith(b'_'):
                     _d = connection_socket.recv(1)
                     if not _d:
-                        data = b''
                         continue
                     data += _d
                 if len(data) == 0:
-                    print('no more data from the client')
                     break
                 data = data.decode("utf-8")
                 length = int(data[:-1])
 
-                # decode to get message
                 data = b''
                 while len(data) < length:
                     _d = connection_socket.recv(length - len(data))
                     if not _d:
-                        data = b''
                         continue
                     data += _d
                 if len(data) == 0:
-                    print('no more data from the client')
                     break
                 msg = data.decode("utf8")
                 print("receive message: " + msg)
