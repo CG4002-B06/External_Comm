@@ -1,4 +1,3 @@
-import json
 import os
 from queue import Queue
 from threading import Thread
@@ -20,11 +19,12 @@ def on_connect(client, userdata, flags, rc, properties=None):
 def on_subscribe(client, userdata, mid, granted_qos, properties=None):
     print("Subscribed: " + str(mid) + " " + str(granted_qos))
 
-
+# print message, useful for checking if it was successful
+def on_message(client, userdata, msg):
+    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 class Consumer(Thread):
     def __init__(self, queue):
         super().__init__()
-        self.consumer_queue = queue
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.on_connect = on_connect
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -33,7 +33,7 @@ class Consumer(Thread):
 
         # setting callbacks, use separate functions like above for better visibility
         self.client.on_subscribe = on_subscribe
-        self.client.on_message = self.on_message
+        self.client.on_message = on_message
 
         self.client.subscribe("test", qos=1)
 
@@ -41,10 +41,6 @@ class Consumer(Thread):
         print("start subscribing data from HiveMQ")
         print(self.client)
         self.client.loop_forever()
-
-    def on_message(self, client, userdata, msg):
-        print("received msg from visualizer: " + str(msg.payload))
-        self.consumer_queue.put(json.loads(msg.payload))
 
 
 if __name__ == "__main__":

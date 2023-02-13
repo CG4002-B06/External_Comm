@@ -40,5 +40,5 @@ class Eval_Client:
             data += self.socket.recv(length - len(data))
 
         msg = data.decode("utf8")
-        print("receive data from eval server:\n " + msg)
+        print("receive data from eval server: " + msg)
         return msg

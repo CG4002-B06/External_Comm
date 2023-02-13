@@ -10,16 +10,16 @@ from utils.player_utils import *
 def process(actions, players):
     result = [None] * 2
     for i in range(0, len(actions)):
-        result[i] = players[i].process_action(actions[i])
+        action = actions[i].get("action")
+        result[i] = players[i].process_action(action)
     return result
 
 
 class GameEngine(Thread):
-    def __init__(self, eval_client, action_queue_player1, action_queue_player2, visualizer_queue):
+    def __init__(self, eval_client, action_queue, visualizer_queue):
         super().__init__()
         self.players = [Player(), Player()]
-        self.action_queue_player1 = action_queue_player1
-        self.action_queue_player2 = action_queue_player2
+        self.action_queue = action_queue
         self.visualizer_queue = visualizer_queue
         self.eval_client = eval_client
         self.players[0].set_opponent(self.players[1])
@@ -27,16 +27,50 @@ class GameEngine(Thread):
 
     def run(self):
         while True:
-            actions = [self.action_queue_player1.get(), self.action_queue_player2.get()]
+            # actions = [self.action_queue.get()]
+            action = str(self.action_queue.get())
+            print("engine gets data: " + action)
+            actions = [
+                {
+                    "action": action,
+                    "player": 0
+                },
+                {
+                    "action": Action.NONE.value,
+                    "player": 1
+                }
+            ]
+            # if self.action_queue.qsize() > 0 and self.action_queue[0].get("player") != actions[0].get("player"):
+            #     actions.append(self.action_queue.get())
+            # else:
+            #     actions.append({
+            #         "action": Action.NONE.value,
+            #         "player": (actions[0].get("player") + 1) % 2
+            #     })
+            actions.sort(key=lambda x: x.get("player"))
+            players_copy = copy.deepcopy(self.players)
             process_result = process(actions, self.players)
-            expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
 
-            if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
-                    status_has_discrepancy(self.players[1], expected_status.get("p2")):
-                self.__correct_status(expected_status)
-                self.__send_correction_packet(expected_status)
+            expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
+            expected_actions = [{"action": expected_status.get("p1").get("action"), "player": 0},
+                                {"action": expected_status.get("p2").get("action"), "player": 1}]
+
+            if actions == expected_actions:
+                if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
+                        status_has_discrepancy(self.players[1], expected_status.get("p2")):
+                    self.__correct_status(expected_status)
+                    self.__send_correction_packet(expected_status)
+                else:
+                    self.__send_normal_packet(process_result)
             else:
-                self.__send_normal_packet(process_result)
+                reprocess_result = process(expected_actions, players_copy)
+                if status_has_discrepancy(players_copy[0], expected_status.get("p1")) or \
+                        status_has_discrepancy(self.players[1], expected_status.get("p2")):
+                    self.__correct_status(expected_status)
+                    self.__send_correction_packet(expected_status)
+                else:
+                    self.players = players_copy
+                    self.__send_normal_packet(reprocess_result)
 
     def __build_eval_payload(self):
         payload = {
