@@ -3,7 +3,7 @@ import paho.mqtt.client as paho
 
 from threading import Thread
 from paho import mqtt
-from constants import producer_constant
+# from constants import producer_constant
 from dotenv import load_dotenv
 
 load_dotenv()

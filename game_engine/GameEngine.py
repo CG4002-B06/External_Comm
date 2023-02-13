@@ -77,6 +77,7 @@ class GameEngine(Thread):
             "p1": self.players[0].get_status(),
             "p2": self.players[1].get_status()
         }
+        print("prior to sending to eval server: " + str(payload))
         return json.dumps(payload)
 
     def __send_correction_packet(self, expected_status, error=""):
@@ -123,3 +124,7 @@ class GameEngine(Thread):
         print("correct players status....")
         self.players[0].correct_status(expected_status.get("p1"))
         self.players[1].correct_status(expected_status.get("p2"))
+        print("after correcting the status...")
+        print(self.players[0].get_status())
+        print(self.players[1].get_status())
+

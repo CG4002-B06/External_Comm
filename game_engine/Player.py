@@ -2,7 +2,6 @@ import datetime
 from constants.Actions import Action
 from constants.player_constant import *
 
-
 class Player:
     # basic status of players upon start or resurge
     max_hp = 100

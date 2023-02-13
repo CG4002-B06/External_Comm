@@ -1,5 +1,5 @@
 from queue import Queue
-from producer.Producer import Producer
+from mqtt.Producer import Producer
 from game_engine.eval_client import Eval_Client
 from constants import eval_server_constant
 from game_engine.GameEngine import GameEngine
@@ -15,9 +15,8 @@ if __name__ == '__main__':
     # pseudoAI = PseudoAI(receive_metric_queue, action_queue).start()
     game_engine = GameEngine(eval_client, action_queue, visualizer_queue).start()
     producer = Producer(visualizer_queue).start()
-
     while True:
         action = input("action") # Key in random action
         action_queue.put(action)
-    # server = RelayServer(receive_metric_queue).serve_request()
+    # server = RelayServer(receive_metric_queue).run()
 
