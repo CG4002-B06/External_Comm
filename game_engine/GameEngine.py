@@ -54,7 +54,7 @@ class GameEngine(Thread):
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
             expected_actions = [{"action": expected_status.get("p1").get("action"), "player": 0},
                                 {"action": expected_status.get("p2").get("action"), "player": 1}]
-
+            # actions -> hardware AI prediction and expected_actions -> eval server action
             if actions == expected_actions:
                 if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                         status_has_discrepancy(self.players[1], expected_status.get("p2")):

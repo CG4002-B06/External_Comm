@@ -12,8 +12,12 @@ visualizer_queue = Queue()  # queue to send messages to the publisher
 
 if __name__ == '__main__':
     eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
-    pseudoAI = PseudoAI(receive_metric_queue, action_queue).start()
+    # pseudoAI = PseudoAI(receive_metric_queue, action_queue).start()
     game_engine = GameEngine(eval_client, action_queue, visualizer_queue).start()
     producer = Producer(visualizer_queue).start()
-    server = RelayServer(receive_metric_queue).serve_request()
+
+    while True:
+        action = input("action") # Key in random action
+        action_queue.put(action)
+    # server = RelayServer(receive_metric_queue).serve_request()
 

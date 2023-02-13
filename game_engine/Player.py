@@ -33,9 +33,11 @@ class Player:
         self.opponent = opponent
 
     def get_status(self):
+        # To calculate the cooldown
         second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
         shield_remain_time = Player.shield_active_time - second_diff if 0 <= second_diff <= Player.shield_active_time else 0
         print(self.last_shield_active_time)
+
         self.shield_health = self.shield_health if self.__is_active_shield() else 0
         status = {
             "hp": self.hp,
@@ -88,7 +90,7 @@ class Player:
         }
         self.action = Action.RELOAD
 
-        if self.bullets > 0:
+        if self.bullets > 0: # Send warning message
             result["invalid_action"] = RELOAD_ERROR_MESSAGE
         else:
             self.bullets = Player.max_bullet_number
@@ -101,6 +103,7 @@ class Player:
             "shot": True
         }
         self.action = Action.SHOOT
+
         if self.bullets <= 0:  # Send warning message
             result["invalid_action"] = SHOOT_ERROR_MESSAGE
         else:
@@ -114,11 +117,13 @@ class Player:
             "action": Action.GRENADE.value
         }
         self.action = Action.GRENADE
-        if self.grenades <= 0:
+
+        if self.grenades <= 0: # Send warning message
             result["invalid_action"] = GRENADE_ERROR_MESSAGE
         else:
             self.grenades -= 1
             self.opponent.grenaded()
+
         return result
 
     def __process_shield(self):
@@ -126,9 +131,10 @@ class Player:
             "action": Action.SHIELD.value
         }
         self.action = Action.SHIELD
-        if self.num_shield <= 0:
+
+        if self.num_shield <= 0: # Send warning message
             result["invalid_action"] = SHIELD_ERROR_MESSAGE
-        elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10:
+        elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10: # Send warning message
             result["invalid_action"] = SHIELD_COOLDOWN_MESSAGE
         else:
             self.num_shield -= 1
