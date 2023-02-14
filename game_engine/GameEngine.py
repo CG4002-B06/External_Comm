@@ -90,7 +90,8 @@ class GameEngine(Thread):
                 "num_of_death": expected_status.get("p1").get("num_deaths"),
                 "num_of_shield": expected_status.get("p1").get("num_shield"),
                 "bullet": expected_status.get("p1").get("bullets"),
-                "shield_health": expected_status.get("p1").get("shield_health")
+                "shield_health": expected_status.get("p1").get("shield_health"),
+                "action": expected_status.get("p1").get("action")
             },
             "p2": {
                 "hp": expected_status.get("p2").get("hp"),
@@ -99,7 +100,8 @@ class GameEngine(Thread):
                 "num_of_death": expected_status.get("p2").get("num_deaths"),
                 "num_of_shield": expected_status.get("p2").get("num_shield"),
                 "bullet": expected_status.get("p2").get("bullets"),
-                "shield_health": expected_status.get("p2").get("shield_health")
+                "shield_health": expected_status.get("p2").get("shield_health"),
+                "action": expected_status.get("p2").get("action")
             }
         }
 
@@ -111,8 +113,8 @@ class GameEngine(Thread):
     def __send_normal_packet(self, result, error=""):
         message = {
             "correction": False,
-            "p1": json.dumps(result[0]),
-            "p2": json.dumps(result[1])
+            "p1": (result[0]),
+            "p2": (result[1])
         }
 
         if error:
