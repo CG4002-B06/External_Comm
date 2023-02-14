@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # producer_event = ProducerEvent(normal_queue).start()
 
     while True:
-        action = input("action") # Key in random action
+        action = input("action: ") # Key in random action
         action_queue.put(action)
     # server = RelayServer(receive_metric_queue).run()
 

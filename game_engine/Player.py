@@ -98,7 +98,7 @@ class Player:
     def __process_shoot(self):
         # TODO: figure out if the shoot is a hit
         result = {
-            "action": Action.RELOAD.value,
+            "action": Action.SHOOT.value,
             "shot": True
         }
         self.action = Action.SHOOT
