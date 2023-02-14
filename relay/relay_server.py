@@ -5,7 +5,6 @@ from threading import Thread
 
 class RelayServer:
     server_port = 6666
-    MAX_CONNECTIONS = 3
 
     def __init__(self, metrics_queue):
         super().__init__()
