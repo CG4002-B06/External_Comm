@@ -54,7 +54,7 @@ class GameEngine(Thread):
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
             expected_actions = [{"action": expected_status.get("p1").get("action"), "player": 0},
                                 {"action": expected_status.get("p2").get("action"), "player": 1}]
-
+            # actions -> hardware AI prediction and expected_actions -> eval server action
             if actions == expected_actions:
                 if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                         status_has_discrepancy(self.players[1], expected_status.get("p2")):
@@ -77,6 +77,7 @@ class GameEngine(Thread):
             "p1": self.players[0].get_status(),
             "p2": self.players[1].get_status()
         }
+        print("prior to sending to eval server: " + str(payload))
         return json.dumps(payload)
 
     def __send_correction_packet(self, expected_status, error=""):
@@ -89,7 +90,8 @@ class GameEngine(Thread):
                 "num_of_death": expected_status.get("p1").get("num_deaths"),
                 "num_of_shield": expected_status.get("p1").get("num_shield"),
                 "bullet": expected_status.get("p1").get("bullets"),
-                "shield_health": expected_status.get("p1").get("shield_health")
+                "shield_health": expected_status.get("p1").get("shield_health"),
+                "action": expected_status.get("p1").get("action")
             },
             "p2": {
                 "hp": expected_status.get("p2").get("hp"),
@@ -98,7 +100,8 @@ class GameEngine(Thread):
                 "num_of_death": expected_status.get("p2").get("num_deaths"),
                 "num_of_shield": expected_status.get("p2").get("num_shield"),
                 "bullet": expected_status.get("p2").get("bullets"),
-                "shield_health": expected_status.get("p2").get("shield_health")
+                "shield_health": expected_status.get("p2").get("shield_health"),
+                "action": expected_status.get("p2").get("action")
             }
         }
 
@@ -110,8 +113,8 @@ class GameEngine(Thread):
     def __send_normal_packet(self, result, error=""):
         message = {
             "correction": False,
-            "p1": json.dumps(result[0]),
-            "p2": json.dumps(result[1])
+            "p1": (result[0]),
+            "p2": (result[1])
         }
 
         if error:
@@ -123,3 +126,7 @@ class GameEngine(Thread):
         print("correct players status....")
         self.players[0].correct_status(expected_status.get("p1"))
         self.players[1].correct_status(expected_status.get("p2"))
+        print("after correcting the status...")
+        print(self.players[0].get_status())
+        print(self.players[1].get_status())
+
