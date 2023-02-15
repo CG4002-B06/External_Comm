@@ -18,8 +18,8 @@ class Producer(Thread):
         self.queue = queue
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-        self.client.username_pw_set(mq_username, mq_password)
-        self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, mqtt_constant.MESSAGE_QUEUE_PORT_NUMBER)
+        self.client.username_pw_set("cg4002", "password")
+        self.client.connect("01f054988a0f4d7ea2bbe9aaa0b080f7.s2.eu.hivemq.cloud", 8883)
 
 
     def run(self):
@@ -27,6 +27,6 @@ class Producer(Thread):
         while True:
             action = self.queue.get()
             print("receive action data: " + action)
-            self.client.publish(mqtt_constant.TOPIC1, payload=action, qos=2)
-            self.client.publish(mqtt_constant.TOPIC2, payload=action, qos=2)
+            self.client.publish("Player", payload=action, qos=2)
+            # self.client.publish(mqtt_constant.TOPIC2, payload=action, qos=2)
 
