@@ -27,15 +27,14 @@ class Consumer(Thread):
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.on_connect = on_connect
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-        self.client.username_pw_set("producer", "producer")
+        self.client.username_pw_set(mq_username, mq_password)
         self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, mqtt_constant.MESSAGE_QUEUE_PORT_NUMBER)
         self.grenadeQuery_queue = queue
 
-        # setting callbacks, use separate functions like above for better visibility
         self.client.on_subscribe = on_subscribe
         self.client.on_message = self.on_message
 
-        self.client.subscribe("grenadeQuery", qos=1)
+        self.client.subscribe(mqtt_constant.CONSUMER_TOPIC, qos=1)
 
     def on_message(self, client, userdata, msg):
         msg = msg.payload.decode("utf8")

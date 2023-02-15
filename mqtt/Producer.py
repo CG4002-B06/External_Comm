@@ -26,7 +26,5 @@ class Producer(Thread):
         print("start publishing data to HiveMQ")
         while True:
             action = self.queue.get()
-            print("receive action data: " + action)
-            self.client.publish(mqtt_constant.TOPIC1, payload=action, qos=2)
-            # self.client.publish(mqtt_constant.TOPIC2, payload=action, qos=2)
+            self.client.publish(mqtt_constant.PUBLISH_TOPIC, payload=action, qos=2)
 
