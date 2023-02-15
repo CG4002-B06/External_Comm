@@ -63,8 +63,6 @@ class Player:
             return self.__process_reload()
         elif action == Action.SHOOT.value:
             return self.__process_shoot()
-        elif action == Action.GRENADE.value:
-            return self.__process_grenade()
         elif action == Action.SHIELD.value:
             return self.__process_shield()
         elif action == Action.LOGOUT.value:
@@ -110,19 +108,10 @@ class Player:
 
         return result
 
-    def __process_grenade(self):
-        result = {
-            "action": Action.GRENADE.value
-        }
-        self.action = Action.GRENADE
-
-        if self.grenades <= 0: # Send warning message
-            result["invalid_action"] = GRENADE_ERROR_MESSAGE
-        else:
-            self.grenades -= 1
+    def process_grenade(self, is_hit):
+        self.grenades -= 1
+        if is_hit:
             self.opponent.grenaded()
-
-        return result
 
     def __process_shield(self):
         result = {
