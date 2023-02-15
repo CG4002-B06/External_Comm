@@ -35,7 +35,6 @@ class Player:
         # To calculate the cooldown
         second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
         shield_remain_time = Player.shield_active_time - second_diff if 0 <= second_diff <= Player.shield_active_time else 0
-        print(self.last_shield_active_time)
 
         self.shield_health = self.shield_health if self.__is_active_shield() else 0
         status = {
