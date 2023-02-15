@@ -35,7 +35,6 @@ class Player:
         # To calculate the cooldown
         second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
         shield_remain_time = Player.shield_active_time - second_diff if 0 <= second_diff <= Player.shield_active_time else 0
-        print(self.last_shield_active_time)
 
         self.shield_health = self.shield_health if self.__is_active_shield() else 0
         status = {
@@ -64,8 +63,6 @@ class Player:
             return self.__process_reload()
         elif action == Action.SHOOT.value:
             return self.__process_shoot()
-        elif action == Action.GRENADE.value:
-            return self.__process_grenade()
         elif action == Action.SHIELD.value:
             return self.__process_shield()
         elif action == Action.LOGOUT.value:
@@ -111,19 +108,10 @@ class Player:
 
         return result
 
-    def __process_grenade(self):
-        result = {
-            "action": Action.GRENADE.value
-        }
-        self.action = Action.GRENADE
-
-        if self.grenades <= 0: # Send warning message
-            result["invalid_action"] = GRENADE_ERROR_MESSAGE
-        else:
-            self.grenades -= 1
+    def process_grenade(self, is_hit):
+        self.grenades -= 1
+        if is_hit:
             self.opponent.grenaded()
-
-        return result
 
     def __process_shield(self):
         result = {

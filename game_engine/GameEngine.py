@@ -9,68 +9,52 @@ from utils.player_utils import *
 
 def process(actions, players):
     result = [None] * 2
-    for i in range(0, len(actions)):
-        action = actions[i].get("action")
-        result[i] = players[i].process_action(action)
+    for i in range(0, 2):
+        result[i] = players[i].process_action(actions[i])
     return result
 
 
 class GameEngine(Thread):
-    def __init__(self, eval_client, action_queue, visualizer_queue):
+    def __init__(self, eval_client, action_queues, visualizer_queue, grenadeQuery_queue):
         super().__init__()
         self.players = [Player(), Player()]
-        self.action_queue = action_queue
+        self.action_queues = action_queues
         self.visualizer_queue = visualizer_queue
         self.eval_client = eval_client
+        self.grenadeQuery_queue = grenadeQuery_queue
         self.players[0].set_opponent(self.players[1])
         self.players[1].set_opponent(self.players[0])
 
     def run(self):
         while True:
-            # actions = [self.action_queue.get()]
-            action = str(self.action_queue.get())
-            print("\nengine gets data: " + action)
-            actions = [
-                {
-                    "action": action,
-                    "player": 0
-                },
-                {
-                    "action": Action.NONE.value,
-                    "player": 1
-                }
-            ]
-            # if self.action_queue.qsize() > 0 and self.action_queue[0].get("player") != actions[0].get("player"):
-            #     actions.append(self.action_queue.get())
-            # else:
-            #     actions.append({
-            #         "action": Action.NONE.value,
-            #         "player": (actions[0].get("player") + 1) % 2
-            #     })
-            actions.sort(key=lambda x: x.get("player"))
-            players_copy = copy.deepcopy(self.players)
-            process_result = process(actions, self.players)
+            actions = [self.action_queues[0].get(), self.action_queues[1].get()]
+            print("\nengine gets data: " + str(actions))
+            has_sent = False
+
+            if actions[0] == Action.GRENADE.value or actions[1] == Action.GRENADE.value:
+                has_sent = True
+
+                self.__send_query_packet(actions[0], actions[1])
+                response = self.grenadeQuery_queue.get()
+                if actions[0] == Action.GRENADE:
+                    self.players[0].process_grenade(response.get("p1"))
+                else:
+                    self.players[0].process_action(actions[0])
+
+                if actions[1] == Action.GRENADE:
+                    self.players[1].process_grenade(response.get("p2"))
+                else:
+                    self.players[1].process_action(actions[1])
+            else:
+                process_result = process(actions, self.players)
 
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
-            expected_actions = [{"action": expected_status.get("p1").get("action"), "player": 0},
-                                {"action": expected_status.get("p2").get("action"), "player": 1}]
-            # actions -> hardware AI prediction and expected_actions -> eval server action
-            if actions == expected_actions:
-                if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
-                        status_has_discrepancy(self.players[1], expected_status.get("p2")):
-                    self.__correct_status(expected_status)
-                    self.__send_correction_packet(expected_status)
-                else:
-                    self.__send_normal_packet(process_result)
-            else:
-                reprocess_result = process(expected_actions, players_copy)
-                if status_has_discrepancy(players_copy[0], expected_status.get("p1")) or \
-                        status_has_discrepancy(self.players[1], expected_status.get("p2")):
-                    self.__correct_status(expected_status)
-                    self.__send_correction_packet(expected_status)
-                else:
-                    self.players = players_copy
-                    self.__send_normal_packet(reprocess_result)
+            if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
+                    status_has_discrepancy(self.players[1], expected_status.get("p2")):
+                self.__correct_status(expected_status)
+                self.__send_correction_packet(expected_status)
+            elif not has_sent:
+                self.__send_normal_packet(process_result)
 
     def __build_eval_payload(self):
         payload = {
@@ -113,8 +97,20 @@ class GameEngine(Thread):
     def __send_normal_packet(self, result, error=""):
         message = {
             "correction": False,
-            "p1": (result[0]),
-            "p2": (result[1])
+            "p1": result[0],
+            "p2": result[1]
+        }
+
+        if error:
+            message["error"] = error
+
+        self.visualizer_queue.put(json.dumps(message))
+
+    def __send_query_packet(self, action1, action2, error=""):
+        message = {
+            "correction": False,
+            "p1": action1,
+            "p2": action2
         }
 
         if error:
@@ -129,4 +125,3 @@ class GameEngine(Thread):
         print("after correcting the status...\n")
         print(self.players[0].get_status())
         print(self.players[1].get_status())
-
