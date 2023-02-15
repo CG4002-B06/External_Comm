@@ -29,7 +29,7 @@ class GameEngine(Thread):
         while True:
             # actions = [self.action_queue.get()]
             action = str(self.action_queue.get())
-            print("engine gets data: " + action)
+            print("\nengine gets data: " + action)
             actions = [
                 {
                     "action": action,
@@ -77,7 +77,7 @@ class GameEngine(Thread):
             "p1": self.players[0].get_status(),
             "p2": self.players[1].get_status()
         }
-        print("prior to sending to eval server: " + str(payload))
+        print("\nprior to sending to eval server: \n" + str(payload))
         return json.dumps(payload)
 
     def __send_correction_packet(self, expected_status, error=""):
@@ -123,10 +123,10 @@ class GameEngine(Thread):
         self.visualizer_queue.put(json.dumps(message))
 
     def __correct_status(self, expected_status):
-        print("correct players status....")
+        print("correct players status....\n")
         self.players[0].correct_status(expected_status.get("p1"))
         self.players[1].correct_status(expected_status.get("p2"))
-        print("after correcting the status...")
+        print("after correcting the status...\n")
         print(self.players[0].get_status())
         print(self.players[1].get_status())
 
