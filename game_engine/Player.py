@@ -13,7 +13,8 @@ class Player:
     bullet_damage = 10
     max_bullet_number = 6
 
-    def __init__(self):
+    def __init__(self, player_id):
+        self.player_id = player_id
         self.opponent = None
         self.hp = Player.max_hp
         self.num_shield = Player.max_shield_number
@@ -49,25 +50,18 @@ class Player:
         }
         return status
 
-    def __resurge(self):
-        self.hp = Player.max_hp
-        self.num_shield = Player.max_shield_number
-        self.last_shield_active_time = datetime.datetime.min
-        self.bullets = Player.max_bullet_number
-        self.grenades = Player.max_grenade_number
-        self.action = Action.NONE
-        self.num_deaths += 1
-
-    def process_action(self, action):
+    def process_action(self, action, query_result):
         if action == Action.RELOAD.value:
-            return self.__process_reload()
+            self.__process_reload()
         elif action == Action.SHOOT.value:
-            return self.__process_shoot()
+            self.__process_shoot(query_result)
+        elif action == Action.GRENADE.value:
+            self.__process_grenade(query_result)
         elif action == Action.SHIELD.value:
-            return self.__process_shield()
+            self.__process_shield()
         elif action == Action.LOGOUT.value:
-            return self.__process_logout()
-        return self.__process_none()
+            self.__process_logout()
+        self.__process_none()
 
     def correct_status(self, expected_status):
         self.hp = expected_status.get("hp")
@@ -80,68 +74,48 @@ class Player:
             self.last_shield_active_time = datetime.datetime.now() - \
                                        datetime.timedelta(seconds=expected_status.get("shield_time"))
 
+    def check_valid_action(self, action):
+        self.action = action
+        if action == Action.RELOAD.value:
+            return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None
+        elif action == Action.SHOOT.value:
+            return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None
+        elif action == Action.GRENADE.value:
+            return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None
+        elif action == Action.SHIELD.value:
+            if self.num_shield <= 0:
+                return SHIELD_ERROR_MESSAGE
+            elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() < 10:
+                return SHIELD_COOLDOWN_MESSAGE
+            return None
+        return None
+
     def __process_reload(self):
-        result = {
-            "action": Action.RELOAD.value
-        }
-        self.action = Action.RELOAD
+        self.bullets = Player.max_bullet_number
 
-        if self.bullets > 0: # Send warning message
-            result["invalid_action"] = RELOAD_ERROR_MESSAGE
-        else:
-            self.bullets = Player.max_bullet_number
-        return result
+    def __process_shoot(self, query_result):
+        is_hit = bool(query_result.get(self.player_id))
 
-    def __process_shoot(self):
-        # TODO: figure out if the shoot is a hit
-        result = {
-            "action": Action.SHOOT.value,
-            "shot": True
-        }
-        self.action = Action.SHOOT
-
-        if self.bullets <= 0:  # Send warning message
-            result["invalid_action"] = SHOOT_ERROR_MESSAGE
-        else:
-            self.bullets -= 1
+        self.bullets -= 1
+        if is_hit:
             self.opponent.shot()
 
-        return result
-
-    def process_grenade(self, is_hit):
+    def __process_grenade(self, query_result):
         self.grenades -= 1
+        is_hit = bool(query_result.get(self.player_id))
         if is_hit:
             self.opponent.grenaded()
 
     def __process_shield(self):
-        result = {
-            "action": Action.SHIELD.value
-        }
-        self.action = Action.SHIELD
-
-        if self.num_shield <= 0: # Send warning message
-            result["invalid_action"] = SHIELD_ERROR_MESSAGE
-        elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= 10: # Send warning message
-            result["invalid_action"] = SHIELD_COOLDOWN_MESSAGE
-        else:
-            self.num_shield -= 1
-            self.last_shield_active_time = datetime.datetime.now()
-            self.shield_health = Player.max_shield_hp
-        return result
+        self.num_shield -= 1
+        self.last_shield_active_time = datetime.datetime.now()
+        self.shield_health = Player.max_shield_hp
 
     def __process_logout(self):
-        result = {
-            "action": Action.LOGOUT.value
-        }
-        self.action = Action.LOGOUT
-        return result
+        pass
 
     def __process_none(self):
-        result = {
-            "action": Action.NONE.value
-        }
-        self.action = Action.NONE
-        return result
+        pass
 
     def __is_active_shield(self):
         return (datetime.datetime.now() - self.last_shield_active_time).total_seconds() <= Player.shield_active_time \
@@ -180,3 +154,11 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
+    def __resurge(self):
+        self.hp = Player.max_hp
+        self.num_shield = Player.max_shield_number
+        self.last_shield_active_time = datetime.datetime.min
+        self.bullets = Player.max_bullet_number
+        self.grenades = Player.max_grenade_number
+        self.action = Action.NONE
+        self.num_deaths += 1

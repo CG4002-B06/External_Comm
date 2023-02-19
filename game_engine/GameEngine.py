@@ -1,23 +1,14 @@
 import json
-import copy
 
 from .Player import *
 from threading import Thread
-from constants.Actions import Action
 from utils.player_utils import *
-
-
-def process(actions, players):
-    result = [None] * 2
-    for i in range(0, 2):
-        result[i] = players[i].process_action(actions[i])
-    return result
 
 
 class GameEngine(Thread):
     def __init__(self, eval_client, action_queues, visualizer_queue, grenadeQuery_queue):
         super().__init__()
-        self.players = [Player(), Player()]
+        self.players = [Player("p1"), Player("p2")]
         self.action_queues = action_queues
         self.visualizer_queue = visualizer_queue
         self.eval_client = eval_client
@@ -27,41 +18,43 @@ class GameEngine(Thread):
 
     def run(self):
         while True:
-            actions = [self.action_queues[0].get(), self.action_queues[1].get()]
-            print("\nengine gets data: " + str(actions))
-            has_sent = False
+            player1_object = {
+                "action": self.action_queues[0].get()
+            }
+            player2_object = {
+                "action": self.action_queues[1].get()
+            }
 
-            if actions[0] == Action.GRENADE.value or actions[1] == Action.GRENADE.value:
-                has_sent = True
+            player1_action_check_result = self.players[0].check_valid_action(player1_object.get("action"))
+            player2_action_check_result = self.players[1].check_valid_action(player2_object.get("action"))
+            if player1_action_check_result:
+                player1_object["invalid_action"] = player1_action_check_result
+            if player2_action_check_result:
+                player2_object["invalid_action"] = player2_action_check_result
 
-                self.__send_query_packet(actions[0], actions[1])
-                response = self.grenadeQuery_queue.get()
-                if actions[0] == Action.GRENADE:
-                    self.players[0].process_grenade(response.get("p1"))
-                else:
-                    self.players[0].process_action(actions[0])
+            self.__send_normal_packet(player1_object, player2_object)
 
-                if actions[1] == Action.GRENADE:
-                    self.players[1].process_grenade(response.get("p2"))
-                else:
-                    self.players[1].process_action(actions[1])
-            else:
-                process_result = process(actions, self.players)
+            query_result = {"p1": False, "p2": False}
+            if player1_object.get("action") == Action.GRENADE.value or \
+                    player2_object.get("action") == Action.GRENADE.value:
+                query_result = self.grenadeQuery_queue.get()
+
+            if not player1_action_check_result:
+                self.players[0].process_action(player1_object.get("action"), query_result)
+            if not player2_action_check_result:
+                self.players[1].process_action(player2_object.get("action"), query_result)
 
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
             if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                     status_has_discrepancy(self.players[1], expected_status.get("p2")):
                 self.__correct_status(expected_status)
                 self.__send_correction_packet(expected_status)
-            elif not has_sent:
-                self.__send_normal_packet(process_result)
 
     def __build_eval_payload(self):
         payload = {
             "p1": self.players[0].get_status(),
             "p2": self.players[1].get_status()
         }
-        print("\nprior to sending to eval server: \n" + str(payload))
         return json.dumps(payload)
 
     def __send_correction_packet(self, expected_status, error=""):
@@ -94,11 +87,11 @@ class GameEngine(Thread):
 
         self.visualizer_queue.put(json.dumps(message))
 
-    def __send_normal_packet(self, result, error=""):
+    def __send_normal_packet(self, player1, player2, error=""):
         message = {
             "correction": False,
-            "p1": result[0],
-            "p2": result[1]
+            "p1": player1,
+            "p2": player2
         }
 
         if error:
@@ -113,7 +106,7 @@ class GameEngine(Thread):
                 "action": action1
             },
             "p2": {
-                "action": action2,
+                "action": action2
             }
         }
 
@@ -123,9 +116,6 @@ class GameEngine(Thread):
         self.visualizer_queue.put(json.dumps(message))
 
     def __correct_status(self, expected_status):
-        print("correct players status....\n")
         self.players[0].correct_status(expected_status.get("p1"))
         self.players[1].correct_status(expected_status.get("p2"))
-        print("after correcting the status...\n")
-        print(self.players[0].get_status())
-        print(self.players[1].get_status())
+

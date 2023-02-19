@@ -2,7 +2,6 @@ from queue import Queue
 
 from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
-# from mqtt.ProducerEvent import ProducerEvent
 from game_engine.eval_client import Eval_Client
 from constants import eval_server_constant
 from game_engine.GameEngine import GameEngine
@@ -20,7 +19,7 @@ if __name__ == '__main__':
     game_engine = GameEngine(eval_client, action_queues, visualizer_queue, grenadeQuery_queue).start()
     producer = Producer(visualizer_queue).start()
     consumer = Consumer(grenadeQuery_queue).start()
-    # server = RelayServer(receive_metric_queue).run()
+    server = RelayServer(receive_metric_queue).run()
 
     while True:
         action = input("action: ") # Key in random action
