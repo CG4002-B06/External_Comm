@@ -16,7 +16,7 @@ grenadeQuery_queue = Queue() # consumer receive grenade query message and put it
 
 if __name__ == '__main__':
     eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
-    pseudoAI = PseudoAI(receive_metric_queue, action_queues).start()
+    # pseudoAI = PseudoAI(receive_metric_queue, action_queues).start()
     game_engine = GameEngine(eval_client, action_queues, visualizer_queue, grenadeQuery_queue).start()
     producer = Producer(visualizer_queue).start()
     consumer = Consumer(grenadeQuery_queue).start()

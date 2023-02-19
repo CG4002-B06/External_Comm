@@ -109,8 +109,12 @@ class GameEngine(Thread):
     def __send_query_packet(self, action1, action2, error=""):
         message = {
             "correction": False,
-            "p1": action1,
-            "p2": action2
+            "p1": {
+                "action": action1
+            },
+            "p2": {
+                "action": action2,
+            }
         }
 
         if error:
