@@ -40,13 +40,13 @@ class Player:
         self.shield_health = self.shield_health if self.__is_active_shield() else 0
         status = {
             "hp": self.hp,
-            "action": self.action.value,
-            "bullets": self.bullets,
             "grenades": self.grenades,
-            "shield_time": shield_remain_time,
-            "shield_health": self.shield_health,
             "num_deaths": self.num_deaths,
-            "num_shield": self.num_shield
+            "num_shield": self.num_shield,
+            "bullets": self.bullets,
+            "shield_health": self.shield_health,
+            "action": self.action.value,
+            "shield_time": shield_remain_time
         }
         return status
 
