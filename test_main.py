@@ -18,8 +18,8 @@ if __name__ == '__main__':
     # pseudoAI = PseudoAI(receive_metric_queue, action_queues).start()
     game_engine = GameEngine(eval_client, action_queues, visualizer_queue, grenadeQuery_queue).start()
     producer = Producer(visualizer_queue).start()
-    consumer = Consumer(grenadeQuery_queue).start()
-    server = RelayServer(receive_metric_queue).run()
+    # consumer = Consumer(grenadeQuery_queue).start()
+    # server = RelayServer(receive_metric_queue).run()
 
     while True:
         action = input("action: ") # Key in random action

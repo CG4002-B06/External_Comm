@@ -94,15 +94,16 @@ class Player:
         self.bullets = Player.max_bullet_number
 
     def __process_shoot(self, query_result):
+        self.bullets -= 1
         is_hit = bool(query_result.get(self.player_id))
 
-        self.bullets -= 1
         if is_hit:
             self.opponent.shot()
 
     def __process_grenade(self, query_result):
         self.grenades -= 1
         is_hit = bool(query_result.get(self.player_id))
+        
         if is_hit:
             self.opponent.grenaded()
 
@@ -131,8 +132,8 @@ class Player:
                 self.num_shield -= 1
                 self.hp -= Player.grenade_damage - self.shield_health
         else:
-            self.shield_health = 0
             self.hp -= Player.grenade_damage
+            self.shield_health = 0
 
         if self.hp <= 0:
             self.__resurge()
@@ -142,11 +143,7 @@ class Player:
             if self.shield_health == Player.bullet_damage:  # Player shot with 10 shield_hp will lose the shield
                 self.shield_health = 0
                 self.num_shield -= 1
-            elif self.shield_health < Player.bullet_damage:  # Player shot with less than 10 shield_hp will lose the shield and lose some hp
-                self.shield_health = 0
-                self.num_shield -= 1
-                self.hp -= Player.bullet_damage - self.shield_health
-            else:  # Player shot with more than 10 shield_hp
+            elif self.shield_health > Player.bullet_damage:  # Player shot with less than 10 shield_hp will lose the shield and lose some hp
                 self.shield_health -= Player.bullet_damage
         else:
             self.hp -= Player.bullet_damage
@@ -154,6 +151,7 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
+
     def __resurge(self):
         self.hp = Player.max_hp
         self.num_shield = Player.max_shield_number

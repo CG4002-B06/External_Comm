@@ -25,6 +25,7 @@ class GameEngine(Thread):
                 "action": self.action_queues[1].get()
             }
 
+            # Check if action is valid or not and assign the warning messages to "invalid_action"
             player1_action_check_result = self.players[0].check_valid_action(player1_object.get("action"))
             player2_action_check_result = self.players[1].check_valid_action(player2_object.get("action"))
             if player1_action_check_result:
@@ -34,6 +35,7 @@ class GameEngine(Thread):
 
             self.__send_normal_packet(player1_object, player2_object)
 
+            # Check if opponent in sight
             query_result = {"p1": False, "p2": False}
             if player1_object.get("action") == Action.GRENADE.value or \
                     player2_object.get("action") == Action.GRENADE.value:
@@ -44,6 +46,7 @@ class GameEngine(Thread):
             if not player2_action_check_result:
                 self.players[1].process_action(player2_object.get("action"), query_result)
 
+            # Store correct status from eval server into expected_status
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
             if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                     status_has_discrepancy(self.players[1], expected_status.get("p2")):
@@ -62,23 +65,23 @@ class GameEngine(Thread):
             "correction": True,
             "p1": {
                 "hp": expected_status.get("p1").get("hp"),
-                "grenade": expected_status.get("p1").get("grenades"),
-                "shield": expected_status.get("p1").get("num_shield"),
-                "num_of_death": expected_status.get("p1").get("num_deaths"),
-                "num_of_shield": expected_status.get("p1").get("num_shield"),
+                "action": expected_status.get("p1").get("action"),
                 "bullet": expected_status.get("p1").get("bullets"),
+                "grenade": expected_status.get("p1").get("grenades"),
+                "shield_time": expected_status.get("p1").get("shield_time"),
                 "shield_health": expected_status.get("p1").get("shield_health"),
-                "action": expected_status.get("p1").get("action")
+                "num_of_death": expected_status.get("p1").get("num_deaths"),
+                "num_of_shield": expected_status.get("p1").get("num_shield")    
             },
             "p2": {
                 "hp": expected_status.get("p2").get("hp"),
-                "grenade": expected_status.get("p2").get("grenades"),
-                "shield": expected_status.get("p2").get("num_shield"),
-                "num_of_death": expected_status.get("p2").get("num_deaths"),
-                "num_of_shield": expected_status.get("p2").get("num_shield"),
+                "action": expected_status.get("p2").get("action"),
                 "bullet": expected_status.get("p2").get("bullets"),
+                "grenade": expected_status.get("p2").get("grenades"),
+                "shield_time": expected_status.get("p2").get("shield_time"),
                 "shield_health": expected_status.get("p2").get("shield_health"),
-                "action": expected_status.get("p2").get("action")
+                "num_of_death": expected_status.get("p2").get("num_deaths"),
+                "num_of_shield": expected_status.get("p2").get("num_shield")             
             }
         }
 
@@ -99,21 +102,21 @@ class GameEngine(Thread):
 
         self.visualizer_queue.put(json.dumps(message))
 
-    def __send_query_packet(self, action1, action2, error=""):
-        message = {
-            "correction": False,
-            "p1": {
-                "action": action1
-            },
-            "p2": {
-                "action": action2
-            }
-        }
+    # def __send_query_packet(self, action1, action2, error=""):
+    #     message = {
+    #         "correction": False,
+    #         "p1": {
+    #             "action": action1
+    #         },
+    #         "p2": {
+    #             "action": action2
+    #         }
+    #     }
 
-        if error:
-            message["error"] = error
+    #     if error:
+    #         message["error"] = error
 
-        self.visualizer_queue.put(json.dumps(message))
+    #     self.visualizer_queue.put(json.dumps(message))
 
     def __correct_status(self, expected_status):
         self.players[0].correct_status(expected_status.get("p1"))
