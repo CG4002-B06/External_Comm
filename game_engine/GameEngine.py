@@ -25,17 +25,20 @@ class GameEngine(Thread):
                 "action": self.action_queues[1].get()
             }
 
-            player1_action_check_result = self.players[0].check_valid_action(player1_object.get("action"))
-            player2_action_check_result = self.players[1].check_valid_action(player2_object.get("action"))
+            player1_action_check_result = self.players[0].check_valid_action(Action(player1_object.get("action")))
+            player2_action_check_result = self.players[1].check_valid_action(Action(player2_object.get("action")))
+
             if player1_action_check_result:
                 player1_object["invalid_action"] = player1_action_check_result
             elif player1_object.get("action") != Action.GRENADE.value:
-                player1_object += self.players[0].get_status()
+                player1_object.update(self.players[0].get_status())
+                self.players[0].process_action(player2_object.get("action"), {"p1": True})
 
             if player2_action_check_result:
                 player2_object["invalid_action"] = player2_action_check_result
             elif player2_object.get("action") != Action.GRENADE.value:
-                player2_object += self.players[1].get_status()
+                player2_object.update(self.players[1].get_status())
+                self.players[1].process_action(player2_object.get("action"), {"p2": True})
 
             self.__send_normal_packet(player1_object, player2_object)
 
@@ -45,9 +48,9 @@ class GameEngine(Thread):
             if player2_object.get("action") == Action.GRENADE.value:
                 query_result += self.grenadeQuery_queue.get()
 
-            if not player1_action_check_result:
+            if not player1_action_check_result and player1_object.get("action") == Action.GRENADE.value:
                 self.players[0].process_action(player1_object.get("action"), query_result)
-            if not player2_action_check_result:
+            if not player2_action_check_result and player2_object.get("action") == Action.GRENADE.value:
                 self.players[1].process_action(player2_object.get("action"), query_result)
 
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
@@ -55,6 +58,8 @@ class GameEngine(Thread):
                     status_has_discrepancy(self.players[1], expected_status.get("p2")):
                 self.__correct_status(expected_status)
                 self.__send_correction_packet(expected_status)
+            elif player1_object.get("action") == Action.GRENADE.value or player2_object.get("action") == Action.GRENADE.value:
+                self.__send_normal_packet(expected_status.get("p1"), expected_status.get("p2"))
 
     def __build_eval_payload(self):
         payload = {
@@ -68,21 +73,21 @@ class GameEngine(Thread):
             "correction": True,
             "p1": {
                 "hp": expected_status.get("p1").get("hp"),
-                "grenade": expected_status.get("p1").get("grenades"),
-                "shield": expected_status.get("p1").get("num_shield"),
-                "num_of_death": expected_status.get("p1").get("num_deaths"),
-                "num_of_shield": expected_status.get("p1").get("num_shield"),
-                "bullet": expected_status.get("p1").get("bullets"),
+                "grenades": expected_status.get("p1").get("grenades"),
+                "shield_time": expected_status.get("p1").get("shield_time"),
+                "num_deaths": expected_status.get("p1").get("num_deaths"),
+                "num_shield": expected_status.get("p1").get("num_shield"),
+                "bullets": expected_status.get("p1").get("bullets"),
                 "shield_health": expected_status.get("p1").get("shield_health"),
                 "action": expected_status.get("p1").get("action")
             },
             "p2": {
                 "hp": expected_status.get("p2").get("hp"),
-                "grenade": expected_status.get("p2").get("grenades"),
-                "shield": expected_status.get("p2").get("num_shield"),
-                "num_of_death": expected_status.get("p2").get("num_deaths"),
-                "num_of_shield": expected_status.get("p2").get("num_shield"),
-                "bullet": expected_status.get("p2").get("bullets"),
+                "grenades": expected_status.get("p2").get("grenades"),
+                "shield_time": expected_status.get("p2").get("shield_time"),
+                "num_deaths": expected_status.get("p2").get("num_deaths"),
+                "num_shield": expected_status.get("p2").get("num_shield"),
+                "bullets": expected_status.get("p2").get("bullets"),
                 "shield_health": expected_status.get("p2").get("shield_health"),
                 "action": expected_status.get("p2").get("action")
             }
@@ -98,22 +103,6 @@ class GameEngine(Thread):
             "correction": False,
             "p1": player1,
             "p2": player2
-        }
-
-        if error:
-            message["error"] = error
-
-        self.visualizer_queue.put(json.dumps(message))
-
-    def __send_query_packet(self, action1, action2, error=""):
-        message = {
-            "correction": False,
-            "p1": {
-                "action": action1
-            },
-            "p2": {
-                "action": action2
-            }
         }
 
         if error:
