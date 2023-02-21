@@ -75,24 +75,20 @@ class GameEngine(Thread):
             "p1": {
                 "hp": expected_status.get("p1").get("hp"),
                 "grenades": expected_status.get("p1").get("grenades"),
-                "shield_time": expected_status.get("p1").get("shield_time"),
                 "num_deaths": expected_status.get("p1").get("num_deaths"),
                 "num_shield": expected_status.get("p1").get("num_shield"),
                 "bullets": expected_status.get("p1").get("bullets"),
                 "shield_health": expected_status.get("p1").get("shield_health"),
-                "num_of_death": expected_status.get("p1").get("num_deaths"),
-                "num_of_shield": expected_status.get("p1").get("num_shield")    
+                "shield_time": expected_status.get("p1").get("shield_time")
             },
             "p2": {
                 "hp": expected_status.get("p2").get("hp"),
                 "grenades": expected_status.get("p2").get("grenades"),
-                "shield_time": expected_status.get("p2").get("shield_time"),
                 "num_deaths": expected_status.get("p2").get("num_deaths"),
                 "num_shield": expected_status.get("p2").get("num_shield"),
                 "bullets": expected_status.get("p2").get("bullets"),
                 "shield_health": expected_status.get("p2").get("shield_health"),
-                "num_of_death": expected_status.get("p2").get("num_deaths"),
-                "num_of_shield": expected_status.get("p2").get("num_shield")             
+                "shield_time": expected_status.get("p2").get("shield_time"),        
             }
         }
 
