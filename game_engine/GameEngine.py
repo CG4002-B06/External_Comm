@@ -29,15 +29,21 @@ class GameEngine(Thread):
             player2_action_check_result = self.players[1].check_valid_action(player2_object.get("action"))
             if player1_action_check_result:
                 player1_object["invalid_action"] = player1_action_check_result
+            elif player1_object.get("action") != Action.GRENADE.value:
+                player1_object += self.players[0].get_status()
+
             if player2_action_check_result:
                 player2_object["invalid_action"] = player2_action_check_result
+            elif player2_object.get("action") != Action.GRENADE.value:
+                player2_object += self.players[1].get_status()
 
             self.__send_normal_packet(player1_object, player2_object)
 
-            query_result = {"p1": False, "p2": False}
-            if player1_object.get("action") == Action.GRENADE.value or \
-                    player2_object.get("action") == Action.GRENADE.value:
-                query_result = self.grenadeQuery_queue.get()
+            query_result = {}
+            if player1_object.get("action") == Action.GRENADE.value:
+                query_result += self.grenadeQuery_queue.get()
+            if player2_object.get("action") == Action.GRENADE.value:
+                query_result += self.grenadeQuery_queue.get()
 
             if not player1_action_check_result:
                 self.players[0].process_action(player1_object.get("action"), query_result)
