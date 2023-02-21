@@ -32,7 +32,7 @@ class Player:
     def set_opponent(self, opponent):
         self.opponent = opponent
 
-    def get_status(self):
+    def get_status(self, need_shield_time=True):
         # To calculate the cooldown
         second_diff = (datetime.datetime.now() - self.last_shield_active_time).total_seconds()
         shield_remain_time = Player.shield_active_time - second_diff if 0 <= second_diff <= Player.shield_active_time else 0
@@ -48,18 +48,23 @@ class Player:
             "action": self.action.value,
             "shield_time": shield_remain_time
         }
+
+        if not need_shield_time:
+            status.pop("shield_time")
         return status
 
-    def process_action(self, action, query_result):
-        if action == Action.RELOAD.value:
+    def process_action(self, action, query_result=None):
+        if query_result is None:
+            query_result = {}
+        if action == Action.RELOAD:
             self.__process_reload()
-        elif action == Action.SHOOT.value:
+        elif action == Action.SHOOT:
             self.__process_shoot(query_result)
-        elif action == Action.GRENADE.value:
+        elif action == Action.GRENADE:
             self.__process_grenade(query_result)
-        elif action == Action.SHIELD.value:
+        elif action == Action.SHIELD:
             self.__process_shield()
-        elif action == Action.LOGOUT.value:
+        elif action == Action.LOGOUT:
             self.__process_logout()
         self.__process_none()
 
@@ -74,15 +79,15 @@ class Player:
             self.last_shield_active_time = datetime.datetime.now() - \
                                        datetime.timedelta(seconds=expected_status.get("shield_time"))
 
-    def check_valid_action(self, action):
+    def check_action(self, action):
         self.action = action
-        if action == Action.RELOAD.value:
+        if action == Action.RELOAD:
             return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None
-        elif action == Action.SHOOT.value:
+        elif action == Action.SHOOT:
             return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None
-        elif action == Action.GRENADE.value:
+        elif action == Action.GRENADE:
             return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None
-        elif action == Action.SHIELD.value:
+        elif action == Action.SHIELD:
             if self.num_shield <= 0:
                 return SHIELD_ERROR_MESSAGE
             elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() < 10:
