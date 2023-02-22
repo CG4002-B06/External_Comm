@@ -67,10 +67,13 @@ class GameEngine(Thread):
     def __build_player_object(self, player_id, action):
         player_object = {"action": action.value}
         check_result = self.players[player_id].check_action(action)
+
         if not check_result and action != Action.GRENADE:
             self.players[player_id].process_action(action, {"p1": True, "p2": True})
-            player_object.update(self.players[player_id].get_status())
-        elif check_result:
+            if action != Action.GRENADE:
+                player_object.update(self.players[player_id].get_status())
+
+        if check_result:
             player_object["invalid"] = check_result
         return player_object, check_result is None
 

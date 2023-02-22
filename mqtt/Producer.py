@@ -21,10 +21,9 @@ class Producer(Thread):
         self.client.username_pw_set(mq_username, mq_password)
         self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, 8883)
 
-
     def run(self):
         print("start publishing data to HiveMQ")
         while True:
             action = self.queue.get()
             self.client.publish(mqtt_constant.PUBLISH_TOPIC, payload=action, qos=2)
-
+            print("published message: " + str(action))

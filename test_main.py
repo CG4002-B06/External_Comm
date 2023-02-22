@@ -22,8 +22,7 @@ if __name__ == '__main__':
     # server = RelayServer(receive_metric_queue).run()
 
     while True:
-        action = input("action: ") # Key in random action
-        action_queues[0].put(action)
+        action_queues[0].put(input())
         action_queues[1].put('none')
 
 
