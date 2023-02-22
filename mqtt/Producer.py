@@ -3,7 +3,7 @@ import paho.mqtt.client as paho
 
 from threading import Thread
 from paho import mqtt
-# from constants import mqtt_constant
+from constants import mqtt_constant
 
 from dotenv import load_dotenv
 
@@ -21,10 +21,9 @@ class Producer(Thread):
         self.client.username_pw_set("cg4002", "password")
         self.client.connect("01f054988a0f4d7ea2bbe9aaa0b080f7.s2.eu.hivemq.cloud", 8883)
 
-
     def run(self):
         print("start publishing data to HiveMQ")
         while True:
             action = self.queue.get()
-            self.client.publish("Player", payload=action, qos=2)
-
+            self.client.publish(mqtt_constant.PUBLISH_TOPIC, payload=action, qos=2)
+            print("published message: " + str(action))

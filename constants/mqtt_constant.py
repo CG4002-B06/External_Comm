@@ -1,5 +1,5 @@
-MESSAGE_QUEUE_URL = "c3cdb3543d864e04ab578cac5a022296.s1.eu.hivemq.cloud"
-# MESSAGE_QUEUE_URL="01f054988a0f4d7ea2bbe9aaa0b080f7.s2.eu.hivemq.cloud"
+# MESSAGE_QUEUE_URL = "c3cdb3543d864e04ab578cac5a022296.s1.eu.hivemq.cloud"
+MESSAGE_QUEUE_URL="01f054988a0f4d7ea2bbe9aaa0b080f7.s2.eu.hivemq.cloud"
 MESSAGE_QUEUE_PORT_NUMBER = 8883
 PUBLISH_TOPIC = "Player"
 CONSUMER_TOPIC = "grenadeQuery"

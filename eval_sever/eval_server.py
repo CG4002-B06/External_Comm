@@ -207,12 +207,13 @@ class Server(threading.Thread):
         print('        Connected to:', client_address[0])
         # print('                     ', ipaddress_dict[client_address[0]])
         print('--------------------------------------------------')
+        secret_key = "PLSPLSPLSPLSWORK"
 
-        if DISABLE_GUI:
-            secret_key = "PLSPLSPLSPLSWORK"
-        else:
-            print("Enter the secret key: ")
-            secret_key = sys.stdin.readline().strip()
+        # if DISABLE_GUI:
+        #     secret_key = "PLSPLSPLSPLSWORK"
+        # else:
+        #     print("Enter the secret key: ")
+        #     secret_key = sys.stdin.readline().strip()
 
         print('connection from', client_address)
         if len(secret_key) == 16 or len(secret_key) == 24 or len(secret_key) == 32:
@@ -388,7 +389,6 @@ class Server(threading.Thread):
             if len(data) == 0:
                 print('no more data from the client')
                 self.stop()
-            print(length)
             msg = data.decode("utf8")  # Decode raw bytes to UTF-8
             game_state_received = self.decrypt_message(msg)
         except ConnectionResetError:
@@ -431,8 +431,6 @@ class Server(threading.Thread):
                 correct_p2_action = self.last_p2_action
 
                 _game_state_correct = self.turn_gen.game_engine.game_state
-                print(game_state_received)
-                print(type(game_state_received))
 
                 self.write_turn_to_logger(
                     game_state_received['p1']['action'],

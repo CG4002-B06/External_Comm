@@ -19,10 +19,14 @@ class GameEngine(Thread):
     def run(self):
         while True:
             action1, action2 = Action(self.action_queues[0].get()), Action(self.action_queues[1].get())
+
+            # check validness of player actions and build the json payload
+            # process and update status if action is not grenade
             player_object1, valid_action1 = self.__build_player_object(0, action1)
             player_object2, valid_action2 = self.__build_player_object(1, action2)
             self.__send_normal_packet(player_object1, player_object2)
 
+            # if any of action is grenade, retrieve query response and update status
             query_result = {}
             if action1 == Action.GRENADE:
                 query_result.update(self.grenadeQuery_queue.get())
@@ -37,12 +41,14 @@ class GameEngine(Thread):
                 self.players[1].process_action(action2, query_result)
                 player_object2 = self.players[1].get_status(False)
 
-            # Store correct status from eval server into expected_status
+            # check against the eval server
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
+            # if status mismatches, send correction packet
             if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
                     status_has_discrepancy(self.players[1], expected_status.get("p2")):
                 self.__correct_status(expected_status)
                 self.__send_correction_packet()
+            # if any of action is grenade, need to send post-update status to visualizer for UI update
             elif Action.GRENADE in [action1, action2]:
                 self.__send_normal_packet(player_object1, player_object2)
 
@@ -68,10 +74,13 @@ class GameEngine(Thread):
     def __build_player_object(self, player_id, action):
         player_object = {"action": action.value}
         check_result = self.players[player_id].check_action(action)
+
         if not check_result and action != Action.GRENADE:
             self.players[player_id].process_action(action, {"p1": True, "p2": True})
-            player_object.update(self.players[player_id].get_status())
-        elif check_result:
+            if action != Action.GRENADE:
+                player_object.update(self.players[player_id].get_status())
+
+        if check_result:
             player_object["invalid"] = check_result
         return player_object, check_result is None
 
@@ -90,4 +99,3 @@ class GameEngine(Thread):
     def __correct_status(self, expected_status):
         self.players[0].correct_status(expected_status.get("p1"))
         self.players[1].correct_status(expected_status.get("p2"))
-
