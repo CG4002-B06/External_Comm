@@ -95,6 +95,9 @@ class Player:
             return None
         return None
 
+    def get_hp(self):
+        return str(self.hp).zfill(3)
+
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
 
