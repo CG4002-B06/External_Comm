@@ -8,7 +8,7 @@ from utils.player_utils import *
 class GameEngine(Thread):
     def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, hp_queue, eval_client=None):
         super().__init__()
-        self.players = [Player("p1"), Player("p2")]
+        self.players = [Player(0), Player(1)]
         self.action_queues = action_queues
         self.visualizer_queue = visualizer_queue
         self.eval_client = eval_client
@@ -20,9 +20,10 @@ class GameEngine(Thread):
     def get_player_status(self, id):
         return self.players[id].get_hp()
 
+
     def run(self):
         while True:
-            action1, action2 = Action(self.action_queues[0].get()), Action(self.action_queues[1].get())
+            action1, action2 = self.action_queues[0].get(), self.action_queues[1].get()
 
             # check validness of player actions and build the json payload
             # process and update status if action is not grenade
@@ -32,17 +33,17 @@ class GameEngine(Thread):
 
             # if any of action is grenade, retrieve query response and update status
             query_result = {}
-            if action1 == Action.GRENADE:
+            if action1[0] == Action.GRENADE:
                 query_result.update(self.grenadeQuery_queue.get())
-            if action2 == Action.GRENADE:
+            if action2[0] == Action.GRENADE:
                 query_result.update(self.grenadeQuery_queue.get())
 
             player_object1, player_object2 = {}, {}
-            if valid_action1 and action1 == Action.GRENADE:
-                self.players[0].process_action(action1, query_result)
+            if valid_action1 and action1[0] == Action.GRENADE:
+                self.players[0].process_action(action1[0], query_result)
                 player_object1 = self.players[0].get_status(False)
-            if valid_action2 and action2 == Action.GRENADE:
-                self.players[1].process_action(action2, query_result)
+            if valid_action2 and action2[0] == Action.GRENADE:
+                self.players[1].process_action(action2[0], query_result)
                 player_object2 = self.players[1].get_status(False)
 
             if not self.eval_client:
@@ -55,9 +56,9 @@ class GameEngine(Thread):
                     self.__send_correction_packet()
                     continue
             # if any of action is grenade, need to send post-update status to visualizer for UI update
-            if Action.GRENADE in [action1, action2]:
+            if Action.GRENADE in [action1[0], action2[0]]:
                 self.__send_normal_packet(player_object1, player_object2)
-            self.hp_queue.put([self.players[0].get_hp(),self.players[1].get_hp()])
+            self.hp_queue.put([self.players[0].get_hp(), self.players[1].get_hp()])
 
     def __build_eval_payload(self):
         payload = {
@@ -79,12 +80,12 @@ class GameEngine(Thread):
         self.visualizer_queue.put(json.dumps(message))
 
     def __build_player_object(self, player_id, action):
-        player_object = {"action": action.value}
-        check_result = self.players[player_id].check_action(action)
+        player_object = {"action": action[0].value}
+        check_result = self.players[player_id].check_action(action[0])
 
-        if not check_result and action != Action.GRENADE:
-            self.players[player_id].process_action(action, {"p1": True, "p2": True})
-        if action != Action.GRENADE:
+        if not check_result and action[0] != Action.GRENADE:
+            self.players[player_id].process_action(action, {player_id: action[1]})
+        if action[0] != Action.GRENADE:
             player_object.update(self.players[player_id].get_status())
 
         if check_result:

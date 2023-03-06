@@ -1,4 +1,9 @@
-import numpy
+import pynq
+import pynq.lib.dma
+from pynq import Overlay, allocate
+import pandas as pd
+import time
+import numpy as np
 def classifyMove(flattenedData):
     overlay = Overlay('design_1_wrapper.bit')
     dma = overlay.axi_dma_0

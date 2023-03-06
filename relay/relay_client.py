@@ -2,7 +2,6 @@ import os
 from socket import *
 from dotenv import load_dotenv
 import socket
-import threading
 import sshtunnel
 
 load_dotenv()
@@ -12,55 +11,36 @@ xilinx_password = os.getenv('XINLINX_PW')
 xilinx_ip = os.getenv('XINLINX_IP')
 
 
-# connecting to ultra96
-class UltraClient(threading.Thread):
-    def __init__(self):
-        super().__init__()
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def start_tunnel():
+    tunnel1 = sshtunnel.open_tunnel(
+        ('stu.comp.nus.edu.sg', 22),
+        remote_bind_address=(xilinx_ip, 22),
+        ssh_username=username,
+        ssh_password=password,
+        block_on_close=False
+    )
+    tunnel1.start()
+    tunnel2 = sshtunnel.open_tunnel(
+        ssh_address_or_host=('localhost', tunnel1.local_bind_port),
+        remote_bind_address=('127.0.0.1', 6666),
+        ssh_username='xilinx',
+        ssh_password=xilinx_password,
+        local_bind_address=('127.0.0.1', 6666),
+        block_on_close=False
+    )
+    tunnel2.start()
+    return tunnel2.local_bind_address
 
-    # sshtunneling into sunfire
-    def start_tunnel(self):
-        tunnel1 = sshtunnel.open_tunnel(
-            ('stu.comp.nus.edu.sg', 22),
-            remote_bind_address=(xilinx_ip, 22),
-            ssh_username=username,
-            ssh_password=password,
-            block_on_close=False
-        )
-        tunnel1.start()
 
-        print('[Tunnel Opened] Tunnel into Sunfire: ' + str(tunnel1.local_bind_port))
+def run(data_queue, response_queue, event):
+    add = start_tunnel()
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect(add)
 
-        tunnel2 = sshtunnel.open_tunnel(
-            ssh_address_or_host=('localhost', tunnel1.local_bind_port),
-            remote_bind_address=('127.0.0.1', 6666),
-            ssh_username='xilinx',
-            ssh_password=xilinx_password,
-            local_bind_address=('127.0.0.1', 6666),
-            block_on_close=False
-        )
-        tunnel2.start()
-        print('[Tunnel Opened] Tunnel into Xilinx')
-
-        return tunnel2.local_bind_address
-
-    def send_data(self, data):
-        self.client.sendall(str(len(data)).encode("utf8")
-                            + b'_' + data.encode("utf8"))
-        response = self.client.recv(3)
-        # TODO: pass health to hardware
-        health = int(response.decode("utf8"))
-
-    def run(self):
-        add = self.start_tunnel()
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect(add)
-        print("[ULTRA96 CONNECTED] Connected to Ultra96")
-
-        while True:
-            data = input("Some dummy data here: ")
-            if data == "stop":
-                break
-            self.send_data(data)
-        self.client.close()
-        print("[CLOSED]")
+    while not event.is_set():
+        data = data_queue.get()
+        client.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
+        if len(data) == 4:  # this packet requires a response
+            response = client.recv(3)
+            health = int(response.decode("utf8"))
+            response_queue.put(health)
