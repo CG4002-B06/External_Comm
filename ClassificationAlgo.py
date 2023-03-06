@@ -23,6 +23,6 @@ def getSlidingWindows(readings, window_size, 1):
         result.append(readings[i:i + window_size])
     return result
     
-def  flattenTheWindows()
+def  flattenTheWindows():
     sliding_windows = MyClass.getSlidingWindows(data, window_size, 1)
     return [np.flatten(x) for x in sliding_windows]
