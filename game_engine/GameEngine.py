@@ -41,16 +41,22 @@ class GameEngine(Thread):
                 self.players[1].process_action(action2, query_result)
                 player_object2 = self.players[1].get_status(False)
 
-            # check against the eval server
+            # Retreive eval server status
             expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
-            # if status mismatches, send correction packet
-            if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
-                    status_has_discrepancy(self.players[1], expected_status.get("p2")):
-                self.__correct_status(expected_status)
-                self.__send_correction_packet()
-            # if any of action is grenade, need to send post-update status to visualizer for UI update
-            elif Action.GRENADE in [action1, action2]:
+            
+            # If eval server is not there (send nothing) but need to send back normal packet again for grenade for targetQuery
+            if expected_status == None & Action.GRENADE in [action1, action2]:
                 self.__send_normal_packet(player_object1, player_object2)
+            elif expected_status != None:
+                # check against the eval server
+                # if status mismatches, send correction packet
+                if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
+                        status_has_discrepancy(self.players[1], expected_status.get("p2")):
+                    self.__correct_status(expected_status)
+                    self.__send_correction_packet()
+                # if any of action is grenade, need to send post-update status to visualizer for UI update
+                elif Action.GRENADE in [action1, action2]:
+                    self.__send_normal_packet(player_object1, player_object2)
 
     def __build_eval_payload(self):
         payload = {
