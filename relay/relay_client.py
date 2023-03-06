@@ -47,6 +47,9 @@ class UltraClient(threading.Thread):
     def send_data(self, data):
         self.client.sendall(str(len(data)).encode("utf8")
                             + b'_' + data.encode("utf8"))
+        response = self.client.recv(3)
+        # TODO: pass health to hardware
+        health = int(response.decode("utf8"))
 
     def run(self):
         add = self.start_tunnel()
