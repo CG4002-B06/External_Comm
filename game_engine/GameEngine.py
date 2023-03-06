@@ -6,15 +6,19 @@ from utils.player_utils import *
 
 
 class GameEngine(Thread):
-    def __init__(self, eval_client, action_queues, visualizer_queue, grenadeQuery_queue):
+    def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, hp_queue, eval_client=None):
         super().__init__()
         self.players = [Player("p1"), Player("p2")]
         self.action_queues = action_queues
         self.visualizer_queue = visualizer_queue
         self.eval_client = eval_client
+        self.hp_queue = hp_queue
         self.grenadeQuery_queue = grenadeQuery_queue
         self.players[0].set_opponent(self.players[1])
         self.players[1].set_opponent(self.players[0])
+
+    def get_player_status(self, id):
+        return self.players[id].get_hp()
 
     def run(self):
         while True:
@@ -41,16 +45,19 @@ class GameEngine(Thread):
                 self.players[1].process_action(action2, query_result)
                 player_object2 = self.players[1].get_status(False)
 
-            # check against the eval server
-            expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
-            # if status mismatches, send correction packet
-            if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
-                    status_has_discrepancy(self.players[1], expected_status.get("p2")):
-                self.__correct_status(expected_status)
-                self.__send_correction_packet()
+            if not self.eval_client:
+                # check against the eval server
+                expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
+                # if status mismatches, send correction packet
+                if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
+                        status_has_discrepancy(self.players[1], expected_status.get("p2")):
+                    self.__correct_status(expected_status)
+                    self.__send_correction_packet()
+                    continue
             # if any of action is grenade, need to send post-update status to visualizer for UI update
-            elif Action.GRENADE in [action1, action2]:
+            if Action.GRENADE in [action1, action2]:
                 self.__send_normal_packet(player_object1, player_object2)
+            self.hp_queue.put([self.players[0].get_hp(),self.players[1].get_hp()])
 
     def __build_eval_payload(self):
         payload = {
