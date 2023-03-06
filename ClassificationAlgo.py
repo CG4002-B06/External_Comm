@@ -45,7 +45,7 @@ def  flattenWindows():
     return [np.flatten(x) for x in sliding_windows]
 
 def predict(readings)
-    flattenedRows = getFlattenWindows(readings)
+    flattenedRows = flattenWindows(readings)
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
     return find_consecutive_num(list_of_actions)
 
