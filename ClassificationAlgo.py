@@ -3,7 +3,7 @@ def classifyMove(flattenedData):
     overlay = Overlay('design_1_wrapper.bit')
     dma = overlay.axi_dma_0
 
-    input_buffer = allocate(shape=(180,), dtype=np.float32)
+    input_buffer = allocate(shape=(150,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
 
     inputData=flattenedData
