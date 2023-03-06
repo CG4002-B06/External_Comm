@@ -40,7 +40,7 @@ def getSlidingWindows(readings):
         result.append(readings[i:i + 25])
     return result
     
-def  flattenWindows():
+def  flattenWindows(readings):
     sliding_windows = getSlidingWindows(readings)
     return [np.flatten(x) for x in sliding_windows]
 
