@@ -1,5 +1,5 @@
 import numpy
-def classifyMove(flattenedData)
+def classifyMove(flattenedData):
     overlay = Overlay('design_1_wrapper.bit')
     dma = overlay.axi_dma_0
 
