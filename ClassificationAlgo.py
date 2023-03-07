@@ -5,7 +5,7 @@ import numpy as np
 
 
 def classifyMove(flattenedRow):
-    overlay = Overlay('design_1_wrapper.bit')
+    overlay = Overlay('../design_1_wrapper.bit')
     dma = overlay.axi_dma_0
     input_buffer = allocate(shape=(150,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
@@ -50,3 +50,7 @@ def predict(readings):
     flattenedRows = flattenWindows(readings)
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
     return find_consecutive_num(list_of_actions)
+
+if __name__ == "__main__":
+    data = input()
+    print(predict(data))
