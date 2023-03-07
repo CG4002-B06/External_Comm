@@ -1,8 +1,6 @@
 import pynq
 import pynq.lib.dma
 from pynq import Overlay, allocate
-import pandas as pd
-import time
 import numpy as np
 
 
@@ -19,7 +17,8 @@ def classifyMove(flattenedRow):
     dma.recvchannel.wait()
     action = int(output_buffer)
 
-    return action 
+    return action
+
 
 def find_consecutive_num(arr):
     curr_num = None
@@ -32,23 +31,22 @@ def find_consecutive_num(arr):
         else:
             curr_num = num
             curr_count = 1
-    return 3 #no action
+    return 3  # no action
+
 
 def getSlidingWindows(readings):
     result = []
     for i in range(0, len(readings) - 25 + 1, 1):
         result.append(readings[i:i + 25])
     return result
-    
-def  flattenWindows(readings):
+
+
+def flattenWindows(readings):
     sliding_windows = getSlidingWindows(readings)
     return [np.flatten(x) for x in sliding_windows]
+
 
 def predict(readings):
     flattenedRows = flattenWindows(readings)
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
     return find_consecutive_num(list_of_actions)
-
-
-
-
