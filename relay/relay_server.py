@@ -1,11 +1,12 @@
 from socket import *
 from threading import Thread
 import struct
+# from ClassificationAlgo import predict
 
 from constants.Actions import Action
 
-VEST_FORMAT = '<3c?'
-GLOVES_FORMAT = '<4c?'
+VEST_FORMAT = '<c2s?'
+GLOVES_FORMAT = '<c3s6h'
 
 class RelayServer:
     server_port = 6666
@@ -20,7 +21,8 @@ class RelayServer:
         self.action_queue = action_queue
         self.hp = ['100', '100']
 
-    def serve_request(self, connection_socket, player_id):
+    def serve_request(self, connection_socket):
+        cache_data = []
         while True:
             data = b''
             while not data.endswith(b'_'):
@@ -46,20 +48,27 @@ class RelayServer:
                 print('no more data from the client')
                 break
 
-            msg = data.decode("utf8")
-            if len(msg) == 4:
-                if not self.hp_queue.empty():
+            if len(data) == 4:
+                while not self.hp_queue.empty():
                     self.hp = self.hp_queue.get()
+                msg = struct.unpack(VEST_FORMAT, data)
+                player_id = msg[1][-1] - ord('0')
                 connection_socket.sendall(self.hp[player_id].encode("utf8"))
-                msg = struct.unpack(VEST_FORMAT, msg)
-                self.action_queue.put([Action.SHOOT, msg[3]])
+                self.action_queue.put([Action.SHOOT, msg[2]])
+                print(msg)
             else:
-                msg = struct.unpack(GLOVES_FORMAT, msg)
+                msg = struct.unpack(GLOVES_FORMAT, data)
                 self.metrics_queue.put(msg)
+                cache_data.append(list([msg[2:]]))
+                if len(cache_data) >= 50:
+                    # action = predict(cache_data)
+                    action = 'shoot'
+                    self.action_queue.put([Action(action)])
+                    cache_data.clear()
+                print(msg)
 
     def run(self):
-        player_id = 0
         while True:
             connection_socket, client_addr = self.server_socket.accept()
-            Thread(target=self.serve_request, args=(connection_socket, player_id)).start()
-            player_id += 1
+            print("accept new connection")
+            Thread(target=self.serve_request, args=(connection_socket,)).start()
