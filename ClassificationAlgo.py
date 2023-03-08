@@ -3,6 +3,7 @@ import pynq.lib.dma
 from pynq import Overlay, allocate
 import numpy as np
 from constants.Actions import Action
+from StartIdentification import *
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
 

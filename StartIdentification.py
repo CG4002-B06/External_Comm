@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 
-def read_file(file_name):
-    return pd.read_csv(file_name)
 
 def calculate_threshold(window_data):
     acc_values = window_data[:, :3]
@@ -21,8 +19,6 @@ def detect_move(data, window_size, slide_val):
             start_of_move_flag = True
     return start_of_move_flag
 
-data = read_file("test2.txt")
 window_size = 3
 slide_size = 2
-start_of_move_flag = detect_move(data, window_size, slide_size)
-print(start_of_move_flag)
+# start_of_move_flag = detect_move(data, window_size, slide_size)

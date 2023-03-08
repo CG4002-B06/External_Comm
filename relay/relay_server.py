@@ -1,19 +1,24 @@
 from socket import *
 from threading import Thread
 import struct
-from ClassificationAlgo import predict
 
 from constants.Actions import Action
+from readerwriterlock import rwlock
+
+lock = rwlock.RWLockFairD()
+rlok = lock.gen_rlock()
+wlok = lock.gen_wlock()
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
 
+cached_data = []
+
 class RelayServer:
     server_port = 6666
 
-    def __init__(self, metrics_queue, action_queue, hp_queue):
+    def __init__(self, action_queue, hp_queue):
         super().__init__()
-        self.metrics_queue = metrics_queue
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
@@ -22,7 +27,6 @@ class RelayServer:
         self.hp = ['100', '100']
 
     def serve_request(self, connection_socket):
-        cache_data = []
         while True:
             data = b''
             while not data.endswith(b'_'):
@@ -58,11 +62,9 @@ class RelayServer:
                 print(msg)
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
-                self.metrics_queue.put(msg)
-                cache_data.append(list([msg[2:]]))
-                if len(cache_data) >= 50:
-                    self.action_queue.put(predict(cache_data))
-                    cache_data.clear()
+                wlok.acquire()
+                cached_data.append(list([msg[2:]]))
+                wlok.release()
                 print(msg)
 
     def run(self):
