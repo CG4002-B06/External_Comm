@@ -8,32 +8,18 @@ from StartIdentification import *
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
 overlay = Overlay('design_1_wrapper.bit')
 
-#def classifyMove(flattenedRow):
-#    dma = overlay.axi_dma_0
-#    input_buffer = allocate(shape=(150,), dtype=np.float32)
-#    output_buffer = allocate(shape=(1,), dtype=np.float32)
-#    for x, n in enumerate(flattenedRow):
-#        input_buffer[x] = n
-#    dma.sendchannel.transfer(input_buffer)
-#    dma.recvchannel.transfer(output_buffer)
-#    dma.sendchannel.wait()
-#    dma.recvchannel.wait()
-#    action = int(output_buffer)
-
-#    return action
-def classifyMove():
+def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
-    input_buffer = allocate(shape=(150,), dtype=np.float32)
+    input_buffer = allocate(shape=(108,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
-    input = pd.read_csv("text.txt")
-    for x, n in enumerate(input):
+    for x, n in enumerate(flattenedRow):
         input_buffer[x] = n
     dma.sendchannel.transfer(input_buffer)
     dma.recvchannel.transfer(output_buffer)
     dma.sendchannel.wait()
     dma.recvchannel.wait()
     action = int(output_buffer)
-    print (action)
+    return action
 
 def find_consecutive_num(arr):
     curr_num = None
@@ -51,8 +37,8 @@ def find_consecutive_num(arr):
 
 def getSlidingWindows(readings):
     result = []
-    for i in range(0, len(readings) - 25 + 1, 1):
-        result.append(readings[i:i + 25])
+    for i in range(0, len(readings) - 18 + 1, 1):
+        result.append(readings[i:i + 6])
     return result
 
 
@@ -68,8 +54,6 @@ def predict(readings):
     print("predict action: " + str(predicted_action.value))
     return predicted_action
 
-
 if __name__ == "__main__":
-    classifyMove()
-    # data = input()
-    # print(predict(data))
+    data=input()
+    print(predict(data))
