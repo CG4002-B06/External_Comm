@@ -7,7 +7,6 @@ action_queue = Queue()
 
 if __name__ == '__main__':
     RelayServer(action_queue).start()
-    print("probing")
     t = Thread(target=ai.start_prediction, args=(action_queue,))
     t.start()
     t.join()

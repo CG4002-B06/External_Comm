@@ -11,7 +11,6 @@ def start_prediction(action_queue):
     print("ai thread starts")
     while True:
         if event.is_set():
-            print("event is set")
             lk.acquire()
             event.clear()
             data = rs.cached_data[0:100]
