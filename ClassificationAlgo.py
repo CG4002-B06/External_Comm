@@ -2,7 +2,9 @@ import pynq
 import pynq.lib.dma
 from pynq import Overlay, allocate
 import numpy as np
+from constants.Actions import Action
 
+mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
 
 def classifyMove(flattenedRow):
     overlay = Overlay('../design_1_wrapper.bit')
@@ -49,7 +51,10 @@ def flattenWindows(readings):
 def predict(readings):
     flattenedRows = flattenWindows(readings)
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
-    return find_consecutive_num(list_of_actions)
+    predicted_action = mappedAction[find_consecutive_num(list_of_actions)]
+    print("predict action: " + str(predicted_action.value))
+    return predicted_action
+
 
 if __name__ == "__main__":
     data = input()

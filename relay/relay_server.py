@@ -1,7 +1,7 @@
 from socket import *
 from threading import Thread
 import struct
-# from ClassificationAlgo import predict
+from ClassificationAlgo import predict
 
 from constants.Actions import Action
 
@@ -61,9 +61,7 @@ class RelayServer:
                 self.metrics_queue.put(msg)
                 cache_data.append(list([msg[2:]]))
                 if len(cache_data) >= 50:
-                    # action = predict(cache_data)
-                    action = 'shoot'
-                    self.action_queue.put([Action(action)])
+                    self.action_queue.put(predict(cache_data))
                     cache_data.clear()
                 print(msg)
 
