@@ -17,14 +17,12 @@ cached_data = []
 class RelayServer:
     server_port = 6666
 
-    def __init__(self, action_queue, hp_queue):
+    def __init__(self, action_queue):
         super().__init__()
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
-        self.hp_queue = hp_queue
         self.action_queue = action_queue
-        self.hp = ['100', '100']
 
     def serve_request(self, connection_socket):
         while True:
@@ -53,12 +51,9 @@ class RelayServer:
                 break
 
             if len(data) == 4:
-                while not self.hp_queue.empty():
-                    self.hp = self.hp_queue.get()
                 msg = struct.unpack(VEST_FORMAT, data)
                 player_id = msg[1][-1] - ord('0')
-                connection_socket.sendall(self.hp[player_id].encode("utf8"))
-                self.action_queue.put([Action.SHOOT, msg[2]])
+                self.action_queue.put([Action.SHOOT, {"p" + str(player_id): msg[2]}])
                 print(msg)
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
