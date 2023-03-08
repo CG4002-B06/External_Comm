@@ -45,7 +45,7 @@ def getSlidingWindows(readings):
 
 def flattenWindows(readings):
     sliding_windows = getSlidingWindows(readings)
-    return [np.flatten(x) for x in sliding_windows]
+    return [np.ravel(x) for x in sliding_windows]
 
 
 def predict(readings):
