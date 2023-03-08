@@ -56,15 +56,15 @@ class Player:
     def process_action(self, action, query_result=None):
         if query_result is None:
             query_result = {}
-        if action == Action.RELOAD:
+        if action.value == Action.RELOAD.value:
             self.__process_reload()
-        elif action == Action.SHOOT:
+        elif action.value == Action.SHOOT.value:
             self.__process_shoot(query_result)
-        elif action == Action.GRENADE:
+        elif action.value == Action.GRENADE.value:
             self.__process_grenade(query_result)
-        elif action == Action.SHIELD:
+        elif action.value == Action.SHIELD.value:
             self.__process_shield()
-        elif action == Action.LOGOUT:
+        elif action.value == Action.LOGOUT.value:
             self.__process_logout()
         self.__process_none()
 
@@ -104,6 +104,7 @@ class Player:
     def __process_shoot(self, query_result):
         self.bullets -= 1
         is_hit = bool(query_result.get(self.player_id))
+        print("is_hit: " + str(is_hit))
 
         if is_hit:
             self.opponent.shot()
