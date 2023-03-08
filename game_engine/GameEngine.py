@@ -33,20 +33,20 @@ class GameEngine(Thread):
 
             # if any of action is grenade, retrieve query response and update status
             query_result = {}
-            if action1[0] == Action.GRENADE:
+            if action1[0].value == Action.GRENADE.value:
                 query_result.update(self.grenadeQuery_queue.get())
-            if action2[0] == Action.GRENADE:
+            if action2[0].value == Action.GRENADE.value:
                 query_result.update(self.grenadeQuery_queue.get())
 
             player_object1, player_object2 = {}, {}
-            if valid_action1 and action1[0] == Action.GRENADE:
+            if valid_action1 and action1[0].value == Action.GRENADE.value:
                 self.players[0].process_action(action1[0], query_result)
                 player_object1 = self.players[0].get_status(False)
-            if valid_action2 and action2[0] == Action.GRENADE:
+            if valid_action2 and action2[0].value == Action.GRENADE.value:
                 self.players[1].process_action(action2[0], query_result)
                 player_object2 = self.players[1].get_status(False)
 
-            if not self.eval_client:
+            if self.eval_client is not None:
                 # check against the eval server
                 expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
                 # if status mismatches, send correction packet
@@ -56,7 +56,7 @@ class GameEngine(Thread):
                     self.__send_correction_packet()
                     continue
             # if any of action is grenade, need to send post-update status to visualizer for UI update
-            if Action.GRENADE in [action1[0], action2[0]]:
+            if Action.GRENADE.value in [action1[0].value, action2[0].value]:
                 self.__send_normal_packet(player_object1, player_object2)
             self.hp_queue.put([self.players[0].get_hp(), self.players[1].get_hp()])
 
@@ -83,9 +83,9 @@ class GameEngine(Thread):
         player_object = {"action": action[0].value}
         check_result = self.players[player_id].check_action(action[0])
 
-        if not check_result and action[0] != Action.GRENADE:
-            self.players[player_id].process_action(action, {player_id: action[1]})
-        if action[0] != Action.GRENADE:
+        if not check_result and action[0].value != Action.GRENADE.value:
+            self.players[player_id].process_action(action[0], {player_id: action[1]})
+        if action[0].value != Action.GRENADE.value:
             player_object.update(self.players[player_id].get_status())
 
         if check_result:
