@@ -7,7 +7,7 @@ action_queue = Queue()
 
 if __name__ == '__main__':
     RelayServer(action_queue).run()
-    Thread(target=ai.start_ai, args=(action_queue,)).start()
+    Thread(target=ai.start_prediction, args=(action_queue,)).start()
 
 
 

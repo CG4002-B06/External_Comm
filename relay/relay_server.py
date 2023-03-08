@@ -1,18 +1,16 @@
 from socket import *
-from threading import Thread
+from threading import Thread, Lock, Event
 import struct
 
 from constants.Actions import Action
-from readerwriterlock import rwlock
 
-lock = rwlock.RWLockFairD()
-rlok = lock.gen_rlock()
-wlok = lock.gen_wlock()
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
 
 cached_data = []
+lk = Lock()
+event = Event()
 
 class RelayServer:
     server_port = 6666
@@ -57,9 +55,11 @@ class RelayServer:
                 print(msg)
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
-                wlok.acquire()
+                lk.acquire()
                 cached_data.append(list([msg[2:]]))
-                wlok.release()
+                if len(cached_data) >= 50:
+                    event.set()
+                lk.release()
                 print(msg)
 
     def run(self):
