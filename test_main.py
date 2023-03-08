@@ -18,7 +18,7 @@ if __name__ == '__main__':
     print(eval_client)
     game_engine = GameEngine(action_queues, visualizer_queue, grenadeQuery_queue, hp_queue, eval_client).start()
     producer = Producer(visualizer_queue).start()
-    # consumer = Consumer(grenadeQuery_queue).start()
+    consumer = Consumer(grenadeQuery_queue).start()
     # server = RelayServer(receive_metric_queue).run()
 
     while True:
