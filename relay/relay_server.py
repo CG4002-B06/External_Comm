@@ -12,8 +12,8 @@ cached_data = []
 lk = Lock()
 event = Event()
 
-class RelayServer:
-    server_port = 6666
+class RelayServer(Thread):
+    server_port = 6667
 
     def __init__(self, action_queue):
         super().__init__()
@@ -56,8 +56,9 @@ class RelayServer:
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
                 lk.acquire()
-                cached_data.append(list([msg[2:]]))
-                if len(cached_data) >= 50:
+                cached_data.append(list(msg)[2:])
+                print(len(cached_data))
+                if len(cached_data) >= 100:
                     event.set()
                 lk.release()
                 print(msg)

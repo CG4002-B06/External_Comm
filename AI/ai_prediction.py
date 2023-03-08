@@ -8,14 +8,18 @@ event = rs.event
 
 
 def start_prediction(action_queue):
+    print("ai thread starts")
     while True:
         if event.is_set():
+            print("event is set")
             lk.acquire()
             event.clear()
-            data = rs.cached_data[0:50]
-            rs.cached_data = rs.cached_data[50:]
+            data = rs.cached_data[0:100]
+            rs.cached_data = rs.cached_data[100:]
             lk.release()
-            if detect_move(data[0:10], window_size, slide_size):
-                predicted_result = predict(data)
-                print("predicted action: " + str(predicted_result))
-                action_queue.put(Action(predicted_result))
+            print(data)
+            
+            #if detect_move(data[0:10], window_size, slide_size):
+            predicted_result = predict(data)
+            print("predicted action: " + str(predicted_result))
+            action_queue.put(Action(predicted_result))
