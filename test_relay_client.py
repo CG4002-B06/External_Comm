@@ -13,6 +13,7 @@ if __name__ == "__main__":
     while True:
         data = struct.pack(VEST_FORMAT, bytes("D",'utf8'), bytes("V1", 'utf8'), True)
         data_queue.put(data)
+        print("sent")
         time.sleep(0.4)
 
 
