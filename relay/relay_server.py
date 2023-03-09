@@ -15,12 +15,13 @@ event = Event()
 class RelayServer(Thread):
     server_port = 6667
 
-    def __init__(self, action_queue):
+    def __init__(self, action_queue, hp_queue):
         super().__init__()
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
         self.action_queue = action_queue
+        self.hp_queue = hp_queue
 
     def serve_request(self, connection_socket):
         while True:
@@ -67,4 +68,9 @@ class RelayServer(Thread):
         while True:
             connection_socket, client_addr = self.server_socket.accept()
             print("accept new connection")
+            Thread(target=send, args=(connection_socket, self.hp_queue))
             Thread(target=self.serve_request, args=(connection_socket,)).start()
+
+def send(socket, hp_queue):
+    while True:
+        socket.sendall(hp_queue.get())

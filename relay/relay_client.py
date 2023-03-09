@@ -1,5 +1,7 @@
 import os
 from socket import *
+from threading import Thread
+
 from dotenv import load_dotenv
 import socket
 import sshtunnel
@@ -22,10 +24,10 @@ def start_tunnel():
     tunnel1.start()
     tunnel2 = sshtunnel.open_tunnel(
         ssh_address_or_host=('localhost', tunnel1.local_bind_port),
-        remote_bind_address=('127.0.0.1', 6666),
+        remote_bind_address=('127.0.0.1', 6667),
         ssh_username='xilinx',
         ssh_password=xilinx_password,
-        local_bind_address=('127.0.0.1', 6666),
+        local_bind_address=('127.0.0.1', 6667),
         block_on_close=False
     )
     tunnel2.start()
@@ -39,8 +41,12 @@ def run(data_queue, response_queue, event):
 
     while not event.is_set():
         data = data_queue.get()
-        client.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
+        client.sendall(str(len(data)).encode("utf8") + b'_' + data)
         if len(data) == 4:  # this packet requires a response
             response = client.recv(3)
             health = int(response.decode("utf8"))
+            print(health)
             response_queue.put(health)
+
+
+
