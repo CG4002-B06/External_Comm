@@ -59,7 +59,7 @@ class RelayServer(Thread):
                 lk.acquire()
                 cached_data.append(list(msg)[2:])
                 print(len(cached_data))
-                if len(cached_data) >= 100:
+                if len(cached_data) >= 25:
                     event.set()
                 lk.release()
                 print(msg)
@@ -73,7 +73,6 @@ class RelayServer(Thread):
 
 def send(socket, hp_queue):
     while True:
-        print("waiting for new health data")
         data = hp_queue.get()
         print("send data: " + str(data))
         socket.sendall(data.encode("utf8"))
