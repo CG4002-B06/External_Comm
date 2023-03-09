@@ -79,7 +79,6 @@ class GameEngine(Thread):
     def __build_player_object(self, player_id, action, query_result):
         player_object = {"action": action.value}
         check_result = self.players[player_id].check_action(action)
-
         if not check_result and action.value != Action.GRENADE.value:
             self.players[player_id].process_action(action, query_result)
         if action.value != Action.GRENADE.value:

@@ -104,8 +104,6 @@ class Player:
 
     def __process_shoot(self, query_result):
         is_hit = bool(query_result.get(self.player_id))
-        print("is_hit: " + str(is_hit))
-
         self.bullets -= 1
         if is_hit:
             self.opponent.shot()
@@ -167,7 +165,7 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
-        self.hp_queue.put({self.player_id: self.hp})
+        self.hp_queue.put(str({self.player_id: str(self.hp).zfill(3)}))
 
     def __resurge(self):
         self.hp = Player.max_hp

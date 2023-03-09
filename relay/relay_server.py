@@ -13,7 +13,7 @@ lk = Lock()
 event = Event()
 
 class RelayServer(Thread):
-    server_port = 6667
+    server_port = 6666
 
     def __init__(self, action_queue, hp_queue):
         super().__init__()
@@ -68,9 +68,12 @@ class RelayServer(Thread):
         while True:
             connection_socket, client_addr = self.server_socket.accept()
             print("accept new connection")
-            Thread(target=send, args=(connection_socket, self.hp_queue))
+            Thread(target=send, args=(connection_socket, self.hp_queue)).start()
             Thread(target=self.serve_request, args=(connection_socket,)).start()
 
 def send(socket, hp_queue):
     while True:
-        socket.sendall(hp_queue.get())
+        print("waiting for new health data")
+        data = hp_queue.get()
+        print("send data: " + str(data))
+        socket.sendall(data.encode("utf8"))
