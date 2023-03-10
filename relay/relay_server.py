@@ -3,6 +3,7 @@ from threading import Thread, Lock, Event
 import struct
 
 from constants.Actions import Action
+from constants import ai_constant
 
 
 VEST_FORMAT = '<c2s?'
@@ -59,7 +60,7 @@ class RelayServer(Thread):
                 lk.acquire()
                 cached_data.append(list(msg)[2:])
                 print(len(cached_data))
-                if len(cached_data) >= 25:
+                if len(cached_data) >= ai_constant.ROW_SIZE:
                     event.set()
                 lk.release()
                 print(msg)

@@ -3,10 +3,11 @@ import json
 from .Player import *
 from threading import Thread
 from utils.player_utils import *
+from main import hp_queue
 
 
 class GameEngine(Thread):
-    def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, hp_queue, eval_client=None):
+    def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, is_one_player, eval_client=None):
         super().__init__()
         self.players = [Player("p1", hp_queue), Player("p2", hp_queue)]
         self.action_queues = action_queues
@@ -15,12 +16,16 @@ class GameEngine(Thread):
         self.grenadeQuery_queue = grenadeQuery_queue
         self.players[0].set_opponent(self.players[1])
         self.players[1].set_opponent(self.players[0])
+        self.is_one_player = is_one_player
 
 
     def run(self):
         while True:
             [action1, query1] = self.action_queues[0].get()
-            [action2, query2] = self.action_queues[1].get()
+            if not self.is_one_player:
+                [action2, query2] = self.action_queues[1].get()
+            else:
+                [action2, query2] = [Action.NONE, {}]
 
             # check validness of player actions and build the json payload
             # process and update status if action is not grenade
