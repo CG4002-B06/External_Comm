@@ -9,7 +9,6 @@ event = rs.event
 
 
 def start_prediction(action_queue):
-    print("ai thread starts")
     while True:
         event.wait()
         lk.acquire()

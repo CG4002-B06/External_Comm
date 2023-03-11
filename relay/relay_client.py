@@ -34,7 +34,7 @@ def start_tunnel():
     return tunnel2.local_bind_address
 
 
-def run(data_queue, response_queue, event):
+def run(data_queue, event):
     add = start_tunnel()
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(add)
