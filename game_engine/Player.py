@@ -96,17 +96,25 @@ class Player:
             return None
         return None
 
-    def get_hp(self):
-        return str(self.hp).zfill(3)
-
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
+        self.hp_queue.put(str({
+            self.player_id: {
+                "bullets": str(self.bullets).zfill(3)
+            }
+        }))
 
     def __process_shoot(self, query_result):
         is_hit = bool(query_result.get(self.player_id))
         self.bullets -= 1
+
         if is_hit:
             self.opponent.shot()
+        self.hp_queue.put(str({
+            self.player_id: {
+                "bullets": str(self.bullets).zfill(3)
+            }
+        }))
 
     def __process_grenade(self, query_result):
         self.grenades -= 1
@@ -145,7 +153,11 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
-        self.hp_queue.put({self.player_id: self.hp})
+        self.hp_queue.put(str({
+            self.player_id: {
+                "health": str(self.hp).zfill(3)
+            }
+        }))
 
     def shot(self):
         if self.__is_active_shield():
@@ -165,7 +177,11 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
-        self.hp_queue.put(str({self.player_id: str(self.hp).zfill(3)}))
+        self.hp_queue.put(str({
+            self.player_id: {
+                "health": str(self.hp).zfill(3)
+            }
+        }))
 
     def __resurge(self):
         self.hp = Player.max_hp
@@ -175,3 +191,9 @@ class Player:
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
         self.num_deaths += 1
+        self.hp_queue.put(str({
+            self.player_id: {
+                "bullets": str(self.bullets).zfill(3),
+                "health": str(self.hp).zfill(3)
+            }
+        }))
