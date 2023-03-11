@@ -3,7 +3,7 @@ from constants.Actions import Action
 from AI.StartIdentification import *
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
-overlay = Overlay('design_2_wrapper.bit')
+overlay = Overlay('design_3_wrapper.bit')
 
 def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
