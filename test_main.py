@@ -4,7 +4,7 @@ from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
 from constants.Actions import Action
 from game_engine.eval_client import Eval_Client
-from constants import eval_server_constant, mqtt_constant
+from constants import eval_server_constant, mqtt_constant, game_state
 from game_engine.GameEngine import GameEngine
 from relay.relay_server import RelayServer
 
@@ -17,7 +17,10 @@ if __name__ == '__main__':
     # eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
     eval_client = None
     RelayServer(action_queues[0], hp_queue).start()
-    GameEngine(action_queues, visualizer_queue, grenadeQuery_queue, hp_queue, eval_client).start()
+    game_engine = GameEngine(action_queues, visualizer_queue, grenadeQuery_queue,
+                             game_state.ONE_PLAYER, eval_client)
+    game_engine.start()
+    print("game engine start")
     # Producer(visualizer_queue, mqtt_constant.PUBLISH_TOPIC_V).start()
     # Producer(hp_queue, mqtt_constant.PUBLISH_TOPIC_R).start()
 
