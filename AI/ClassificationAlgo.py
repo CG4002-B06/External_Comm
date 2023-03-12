@@ -35,7 +35,7 @@ def find_consecutive_num(arr):
 
 def getSlidingWindows(readings):
     result = []
-    for i in range(0, len(readings) - 15 + 1, 1):
+    for i in range(0, len(readings) - 18 + 1, 1):
         result.append(readings[i:i + 6])
     return result
 
