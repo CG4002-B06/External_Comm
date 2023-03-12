@@ -8,11 +8,11 @@ import random
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
 event = Event()
-data_queue, response_queue = Queue(), Queue()
+data_queue = Queue()
 
 
 if __name__ == "__main__":
-    t = Thread(target=run, args=(data_queue, response_queue, event)).start()
+    t = Thread(target=run, args=(data_queue, event)).start()
     while True:
 
         data = struct.pack(

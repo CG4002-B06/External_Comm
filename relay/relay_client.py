@@ -36,13 +36,17 @@ def start_tunnel():
 
 def run(data_queue, event):
     add = start_tunnel()
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(add)
-    Thread(target=receive_health_change, args=(client, event)).start()
+    client1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client1.connect(add)
+    client1.sendall(b'H1')
+
+    client2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client2.connect(add)
+    Thread(target=receive_health_change, args=(client2, event)).start()
 
     while not event.is_set():
         data = data_queue.get()
-        client.sendall(str(len(data)).encode("utf8") + b'_' + data)
+        client1.sendall(str(len(data)).encode("utf8") + b'_' + data)
 
 
 def receive_health_change(socket, event):
