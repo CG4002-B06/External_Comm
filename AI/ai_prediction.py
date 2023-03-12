@@ -22,4 +22,4 @@ def start_prediction(action_queue):
         if flag:
             print(data)
             predicted_result = predict(data)
-            action_queue.put({Action(predicted_result), {}})
+            action_queue.put([Action(predicted_result), {}])

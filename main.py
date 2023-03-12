@@ -1,6 +1,6 @@
 from queue import Queue
-from threading import Thread
 
+from constants.Actions import Action
 from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
 from game_engine.eval_client import Eval_Client
@@ -8,7 +8,7 @@ from constants import eval_server_constant
 from game_engine import GameEngine
 from constants import mqtt_constant, game_state
 from relay.relay_server import RelayServer
-import AI.ai_prediction as ai
+# import AI.ai_prediction as ai
 
 action_queues = [Queue(), Queue()]  # queue to receive action messages determined by AI
 visualizer_queue = Queue()  # queue to send messages to the publisher
@@ -36,11 +36,15 @@ if __name__ == '__main__':
     relay_server.start()
     print("relay server start")
 
-    ai = Thread(target=ai.start_prediction, args=(action_queues[0],))
-    ai.start()
-    print("ai start")
+    # ai = Thread(target=ai.start_prediction, args=(action_queues[0],))
+    # ai.start()
+    # print("ai start")
+    while True:
+        data = input()
+        action_queues[1].put([Action(data), {"p1": True}])
 
-    ai.join()
+
+    # ai.join()
     relay_server.join()
     consumer.join()
     producer.join()

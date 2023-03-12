@@ -20,9 +20,9 @@ class GameEngine(Thread):
 
     def run(self):
         while True:
-            [action1, query1] = self.action_queues[0].get()
+            [action1, query1] = self.action_queues[1].get()
             if not self.is_one_player:
-                [action2, query2] = self.action_queues[1].get()
+                [action2, query2] = self.action_queues[0].get()
             else:
                 [action2, query2] = [Action.NONE, {}]
 
@@ -36,12 +36,11 @@ class GameEngine(Thread):
 
             # if any of action is grenade, retrieve query response and update status
             query_result = {}
-            if action1.value == Action.GRENADE.value:
+            if action1.value == Action.GRENADE.value and valid_action1:
                 query_result.update(self.grenadeQuery_queue.get())
-            if action2.value == Action.GRENADE.value:
+            if action2.value == Action.GRENADE.value and valid_action2:
                 query_result.update(self.grenadeQuery_queue.get())
 
-            player_object1, player_object2 = {}, {}
             if valid_action1 and action1.value == Action.GRENADE.value:
                 self.players[0].process_action(action1, query_result)
                 player_object1 = self.players[0].get_status(False)

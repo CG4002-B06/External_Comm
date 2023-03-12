@@ -11,7 +11,7 @@ GLOVES_FORMAT = '<c3s6h'
 
 cached_data = []
 lk = Lock()
-event = Event()
+event, connection_established = Event(), Event()
 
 class RelayServer(Thread):
     server_port = 6667
@@ -25,6 +25,16 @@ class RelayServer(Thread):
         self.hp_queue = hp_queue
 
     def serve_request(self, connection_socket):
+        hello_packet = connection_socket.recv(2).decode()
+        connection_socket.send(b'A')
+        print("hello packet: " + hello_packet)
+        player_id = int(hello_packet[1])
+
+        send_socket, addr = self.server_socket.accept()
+        Thread(target=send, args=(send_socket, self.hp_queue)).start()
+        print("second connection established")
+        connection_established.set()
+
         while True:
             data = b''
             while not data.endswith(b'_'):
@@ -52,10 +62,6 @@ class RelayServer(Thread):
 
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
-                if msg[1][0] == 'G':
-                    player_id = msg[1][-1] - ord('0') + 1
-                else:
-                    player_id = (msg[1][-1] - ord('0') + 1) % 2
                 self.action_queue.put([Action.SHOOT, {"p" + str(player_id): msg[2]}])
                 print(msg)
             else:
@@ -71,9 +77,10 @@ class RelayServer(Thread):
     def run(self):
         while True:
             connection_socket, client_addr = self.server_socket.accept()
-            print("accept new connection")
-            Thread(target=send, args=(connection_socket, self.hp_queue)).start()
             Thread(target=self.serve_request, args=(connection_socket,)).start()
+            print("accept the first connection")
+            connection_established.wait()
+            connection_established.clear()
 
 def send(socket, hp_queue):
     while True:
@@ -81,4 +88,3 @@ def send(socket, hp_queue):
         data = hp_queue.get()
         print("send data: " + str(data))
         socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
-        # socket.sendall(data.encode("utf8"))
