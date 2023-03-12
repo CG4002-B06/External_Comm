@@ -23,8 +23,6 @@ if __name__ == '__main__':
 
     while True:
         action1 = [Action(input()), True]
-        action2 = [Action('none'), True]
+        action2 = [Action(input()), True]
         action_queues[0].put(action1)
         action_queues[1].put(action2)
-
-
