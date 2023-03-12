@@ -1,2 +1,2 @@
-HAS_EVAL=True
+HAS_EVAL=False
 ONE_PLAYER=True

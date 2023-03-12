@@ -14,7 +14,7 @@ lk = Lock()
 event = Event()
 
 class RelayServer(Thread):
-    server_port = 6666
+    server_port = 6667
 
     def __init__(self, action_queue, hp_queue):
         super().__init__()
@@ -52,7 +52,10 @@ class RelayServer(Thread):
 
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
-                player_id = msg[1][-1] - ord('0')
+                if msg[1][0] == 'G':
+                    player_id = msg[1][-1] - ord('0') + 1
+                else:
+                    player_id = (msg[1][-1] - ord('0') + 1) % 2
                 self.action_queue.put([Action.SHOOT, {"p" + str(player_id): msg[2]}])
                 print(msg)
             else:
@@ -74,6 +77,8 @@ class RelayServer(Thread):
 
 def send(socket, hp_queue):
     while True:
+        print("waiting for data")
         data = hp_queue.get()
         print("send data: " + str(data))
-        socket.sendall(data.encode("utf8"))
+        socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
+        # socket.sendall(data.encode("utf8"))
