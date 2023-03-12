@@ -24,7 +24,8 @@ if __name__ == '__main__':
     # consumer = Consumer(grenadeQuery_queue).start()
 
     while True:
-        input()
+        data = input()
+        action1 = [Action(data),{"p1": True}]
         action2 = [Action('none'), {"p2": True}]
         action_queues[1].put(action2)
 

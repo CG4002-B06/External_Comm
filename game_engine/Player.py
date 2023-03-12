@@ -115,6 +115,7 @@ class Player:
                 "bullets": str(self.bullets).zfill(3)
             }
         }))
+        print("queue size: " + str(self.hp_queue.qsize()))
 
     def __process_grenade(self, query_result):
         self.grenades -= 1
@@ -177,6 +178,7 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
+        
         self.hp_queue.put(str({
             self.player_id: {
                 "health": str(self.hp).zfill(3)

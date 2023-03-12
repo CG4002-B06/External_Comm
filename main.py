@@ -5,7 +5,7 @@ from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
 from game_engine.eval_client import Eval_Client
 from constants import eval_server_constant
-from game_engine.GameEngine import GameEngine
+from game_engine import GameEngine
 from constants import mqtt_constant, game_state
 from relay.relay_server import RelayServer
 import AI.ai_prediction as ai
@@ -19,8 +19,8 @@ if __name__ == '__main__':
     eval_client = None
     if game_state.HAS_EVAL:
         eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
-    game_engine = GameEngine(action_queues, visualizer_queue, grenadeQuery_queue,
-                             game_state.ONE_PLAYER, eval_client)
+    game_engine = GameEngine.GameEngine(action_queues, visualizer_queue, grenadeQuery_queue,
+                             hp_queue, game_state.ONE_PLAYER, eval_client)
     game_engine.start()
     print("game engine start")
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     consumer.start()
     print("consumer start")
 
-    relay_server = RelayServer(action_queues, hp_queue)
+    relay_server = RelayServer(action_queues[0], hp_queue)
     relay_server.start()
     print("relay server start")
 

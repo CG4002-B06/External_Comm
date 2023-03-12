@@ -20,5 +20,6 @@ def start_prediction(action_queue):
         flag = detect_move(pd.DataFrame(data[0:ai_constant.DETECT_MOVE_SIZE]), window_size, slide_size)
         print("flag: " + str(flag))
         if flag:
+            print(data)
             predicted_result = predict(data)
-            action_queue.put(Action(predicted_result))
+            action_queue.put({Action(predicted_result), {}})
