@@ -1,28 +1,40 @@
 from socket import *
-from threading import Thread
+from threading import Thread, Lock, Event
 import struct
-from ClassificationAlgo import predict
 
 from constants.Actions import Action
+from constants import ai_constant
+
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
 
-class RelayServer:
-    server_port = 6666
+cached_data = []
+lk = Lock()
+event, connection_established = Event(), Event()
 
-    def __init__(self, metrics_queue, action_queue, hp_queue):
+class RelayServer(Thread):
+    server_port = 6667
+
+    def __init__(self, action_queue, hp_queue):
         super().__init__()
-        self.metrics_queue = metrics_queue
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
-        self.hp_queue = hp_queue
         self.action_queue = action_queue
-        self.hp = ['100', '100']
+        self.hp_queue = hp_queue
 
     def serve_request(self, connection_socket):
-        cache_data = []
+        hello_packet = connection_socket.recv(2).decode()
+        connection_socket.send(b'A')
+        print("hello packet: " + hello_packet)
+        player_id = int(hello_packet[1])
+
+        send_socket, addr = self.server_socket.accept()
+        Thread(target=send, args=(send_socket, self.hp_queue)).start()
+        print("second connection established")
+        connection_established.set()
+
         while True:
             data = b''
             while not data.endswith(b'_'):
@@ -49,24 +61,30 @@ class RelayServer:
                 break
 
             if len(data) == 4:
-                while not self.hp_queue.empty():
-                    self.hp = self.hp_queue.get()
                 msg = struct.unpack(VEST_FORMAT, data)
-                player_id = msg[1][-1] - ord('0')
-                connection_socket.sendall(self.hp[player_id].encode("utf8"))
-                self.action_queue.put([Action.SHOOT, msg[2]])
+                self.action_queue.put([Action.SHOOT, {"p" + str(player_id): msg[2]}])
                 print(msg)
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
-                self.metrics_queue.put(msg)
-                cache_data.append(list([msg[2:]]))
-                if len(cache_data) >= 50:
-                    self.action_queue.put(predict(cache_data))
-                    cache_data.clear()
+                lk.acquire()
+                cached_data.append(list(msg)[2:])
+                print(len(cached_data))
+                if len(cached_data) >= ai_constant.ROW_SIZE:
+                    event.set()
+                lk.release()
                 print(msg)
 
     def run(self):
         while True:
             connection_socket, client_addr = self.server_socket.accept()
-            print("accept new connection")
             Thread(target=self.serve_request, args=(connection_socket,)).start()
+            print("accept the first connection")
+            connection_established.wait()
+            connection_established.clear()
+
+def send(socket, hp_queue):
+    while True:
+        print("waiting for data")
+        data = hp_queue.get()
+        print("send data: " + str(data))
+        socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))

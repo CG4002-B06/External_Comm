@@ -13,7 +13,7 @@ class Player:
     bullet_damage = 10
     max_bullet_number = 6
 
-    def __init__(self, player_id):
+    def __init__(self, player_id, hp_queue):
         self.player_id = player_id
         self.opponent = None
         self.hp = Player.max_hp
@@ -24,6 +24,7 @@ class Player:
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
         self.num_deaths = 0
+        self.hp_queue = hp_queue
 
     def __str__(self):
         return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have died {} times".format(
@@ -95,19 +96,27 @@ class Player:
             return None
         return None
 
-    def get_hp(self):
-        return str(self.hp).zfill(3)
-
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
+        self.hp_queue.put(str({
+            self.player_id: {
+                "bullets": str(self.bullets).zfill(3)
+            }
+        }))
 
     def __process_shoot(self, query_result):
         self.bullets -= 1
         is_hit = bool(query_result.get(self.player_id))
-        print("is_hit: " + str(is_hit))
+        self.bullets -= 1
 
         if is_hit:
             self.opponent.shot()
+        self.hp_queue.put(str({
+            self.player_id: {
+                "bullets": str(self.bullets).zfill(3)
+            }
+        }))
+        print("queue size: " + str(self.hp_queue.qsize()))
 
     def __process_grenade(self, query_result):
         self.grenades -= 1
@@ -133,33 +142,50 @@ class Player:
 
     def grenaded(self):
         if self.__is_active_shield():
-            if self.shield_health >= Player.grenade_damage:  # Player shot with 30 shield_hp will lose the shield
+            # Player shot with 30 shield_hp will lose the shield
+            if self.shield_health >= Player.grenade_damage:
                 self.shield_health = 0
-                self.num_shield -= 1
-            else:  # Player shot with less than 30 shield_hp will lose the shield and lose some hp
-                self.shield_health = 0
-                self.num_shield -= 1
-                self.hp -= Player.grenade_damage - self.shield_health
+                return
+
+            # Player shot with less than 30 shield_hp will lose the shield and lose some hp
+            self.shield_health = 0
+            self.hp -= Player.grenade_damage - self.shield_health
         else:
             self.hp -= Player.grenade_damage
             self.shield_health = 0
 
         if self.hp <= 0:
             self.__resurge()
+        self.hp_queue.put(str({
+            self.player_id: {
+                "health": str(self.hp).zfill(3)
+            }
+        }))
 
     def shot(self):
         if self.__is_active_shield():
-            if self.shield_health == Player.bullet_damage:  # Player shot with 10 shield_hp will lose the shield
-                self.shield_health = 0
-                self.num_shield -= 1
-            elif self.shield_health > Player.bullet_damage:  # Player shot with less than 10 shield_hp will lose the shield and lose some hp
+            # Player shot with more than or equal to 10 shield_hp
+            if self.shield_health >= Player.bullet_damage:
                 self.shield_health -= Player.bullet_damage
+                return
+
+            # Player shot with less than 10 shield_hp will lose the shield and lose some hp
+            else:
+                self.shield_health = 0
+                self.hp -= Player.bullet_damage - self.shield_health
+
         else:
             self.hp -= Player.bullet_damage
             self.shield_health = 0
 
         if self.hp <= 0:
             self.__resurge()
+        
+        self.hp_queue.put(str({
+            self.player_id: {
+                "health": str(self.hp).zfill(3)
+            }
+        }))
 
     def __resurge(self):
         self.hp = Player.max_hp
@@ -169,3 +195,9 @@ class Player:
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
         self.num_deaths += 1
+        self.hp_queue.put(str({
+            self.player_id: {
+                "bullets": str(self.bullets).zfill(3),
+                "health": str(self.hp).zfill(3)
+            }
+        }))

@@ -9,8 +9,8 @@ from constants import mqtt_constant
 from dotenv import load_dotenv
 
 load_dotenv()
-mq_username = os.getenv('MESSAGE_QUEUE_USERNAME')
-mq_password = os.getenv('MESSAGE_QUEUE_PW')
+mq_username="cg4002"
+mq_password="password"
 
 
 def on_connect(client, userdata, flags, rc, properties=None):

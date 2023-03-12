@@ -1,0 +1,2 @@
+HAS_EVAL=False
+ONE_PLAYER=True

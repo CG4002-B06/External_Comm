@@ -1,5 +1,7 @@
 import os
 from socket import *
+from threading import Thread
+
 from dotenv import load_dotenv
 import socket
 import sshtunnel
@@ -32,15 +34,31 @@ def start_tunnel():
     return tunnel2.local_bind_address
 
 
-def run(data_queue, response_queue, event):
+def run(data_queue, event):
     add = start_tunnel()
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(add)
+    client1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client1.connect(add)
+    client1.sendall(b'H1')
+
+    client2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client2.connect(add)
+    Thread(target=receive_health_change, args=(client2, event)).start()
 
     while not event.is_set():
         data = data_queue.get()
-        client.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
-        if len(data) == 4:  # this packet requires a response
-            response = client.recv(3)
-            health = int(response.decode("utf8"))
-            response_queue.put(health)
+        client1.sendall(str(len(data)).encode("utf8") + b'_' + data)
+
+
+def receive_health_change(socket, event):
+    while not event.is_set():
+        response = eval(socket.recv(13).decode("utf8"))
+
+        print(response)
+        print(type(response))
+        health1, health2 = response.get("p1"), response.get("p2")
+        if health1:
+            health1 = int(health1)
+        if health2:
+            health2 = int(health2)
+        print("p1 health: " + str(health1))
+        print("p2 health: " + str(health2))
