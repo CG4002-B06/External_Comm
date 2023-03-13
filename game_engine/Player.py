@@ -105,7 +105,6 @@ class Player:
         }))
 
     def __process_shoot(self, query_result):
-        self.bullets -= 1
         is_hit = bool(query_result.get(self.player_id))
         self.bullets -= 1
 
