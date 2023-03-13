@@ -38,13 +38,11 @@ class GameEngine(Thread):
             query_result = {}
             if action1.value == Action.GRENADE.value and valid_action1:
                 query_result.update(self.grenadeQuery_queue.get())
-            if action2.value == Action.GRENADE.value and valid_action2:
-                query_result.update(self.grenadeQuery_queue.get())
-
-            if valid_action1 and action1.value == Action.GRENADE.value:
                 self.players[0].process_action(action1, query_result)
                 player_object1 = self.players[0].get_status(False)
-            if valid_action2 and action2.value == Action.GRENADE.value:
+
+            if action2.value == Action.GRENADE.value and valid_action2:
+                query_result.update(self.grenadeQuery_queue.get())
                 self.players[1].process_action(action2, query_result)
                 player_object2 = self.players[1].get_status(False)
             if self.eval_client is not None:
