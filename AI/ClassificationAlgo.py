@@ -7,7 +7,7 @@ overlay = Overlay('design_4_wrapper.bit')
 
 def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
-    input_buffer = allocate(shape=(60,), dtype=np.float32)
+    input_buffer = allocate(shape=(120,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
     for x, n in enumerate(flattenedRow):
         input_buffer[x] = n
