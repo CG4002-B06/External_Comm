@@ -48,7 +48,7 @@ def flattenWindows(readings):
 def predict(readings):
     flattenedRows = flattenWindows(readings)
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
-    predicted_action = mappedAction[find_consecutive_num(list_of_actions)]
+    predicted_action = mappedAction[np.max(list_of_actions)]
     # predicted_action = find_consecutive_num(list_of_actions)
     print("predict action: " + str(predicted_action))
     return predicted_action
