@@ -3,11 +3,11 @@ from constants.Actions import Action
 from AI.StartIdentification import *
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
-overlay = Overlay('design_4_wrapper.bit')
+overlay = Overlay('design_3_wrapper.bit')
 
 def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
-    input_buffer = allocate(shape=(120,), dtype=np.float32)
+    input_buffer = allocate(shape=(60,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
     for x, n in enumerate(flattenedRow):
         input_buffer[x] = n
@@ -35,7 +35,7 @@ def find_consecutive_num(arr):
 
 def getSlidingWindows(readings):
     result = []
-    for i in range(0, len(readings) - 75 + 1, 1):
+    for i in range(0, len(readings) - 18 + 1, 1):
         result.append(readings[i:i + 6])
     return result
 
