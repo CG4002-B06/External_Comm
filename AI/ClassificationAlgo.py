@@ -25,7 +25,7 @@ def find_consecutive_num(arr):
     for num in arr:
         if num == curr_num:
             curr_count += 1
-            if curr_count > 0:
+            if curr_count > 3:
                 return num
         else:
             curr_num = num
