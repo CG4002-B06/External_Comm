@@ -62,6 +62,9 @@ class RelayServer(Thread):
                 print('no more data from the client')
                 break
 
+            if data == b'B':
+                break
+
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
                 self.action_queue.put([Action.SHOOT, {"p" + str(player_id): msg[2]}])
