@@ -7,3 +7,4 @@ class Action(Enum):
     GRENADE = 'grenade'
     SHIELD = 'shield'
     LOGOUT = 'logout'
+    INACTIVE = 'inactive'
