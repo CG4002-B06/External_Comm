@@ -14,8 +14,8 @@ grenadeQuery_queue = Queue() # consumer receive grenade query message and put it
 hp_queue = Queue()
 
 if __name__ == '__main__':
-    # eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
-    eval_client = None
+    eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
+    # eval_client = None
     RelayServer(action_queues[0], hp_queue).start()
     game_engine = GameEngine(action_queues, visualizer_queue, grenadeQuery_queue,
                              game_state.ONE_PLAYER, eval_client)
