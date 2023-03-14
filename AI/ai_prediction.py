@@ -15,6 +15,8 @@ def start_prediction(action_queue, has_logout):
         event.clear()
         data = rs.cached_data[0:ai_constant.ROW_SIZE]
         rs.cached_data = rs.cached_data[ai_constant.ROW_SIZE:]
+        if len(rs.cached_data) < ai_constant.ROW_SIZE:
+            rs.cached_data = []
         lk.release()
 
         flag = detect_move(pd.DataFrame(data[0:ai_constant.DETECT_MOVE_SIZE]), window_size, slide_size)
