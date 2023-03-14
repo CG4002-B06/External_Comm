@@ -2,7 +2,7 @@ from pynq import Overlay, allocate
 from constants.Actions import Action
 from AI.StartIdentification import *
 
-mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
+mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.INACTIVE}
 overlay = Overlay('design_5_wrapper.bit')
 
 
