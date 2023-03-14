@@ -22,7 +22,7 @@ def on_subscribe(client, userdata, mid, granted_qos, properties=None):
 
 
 class Consumer(Thread):
-    def __init__(self, queue):
+    def __init__(self, queue, has_logout):
         super().__init__()
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.on_connect = on_connect
@@ -30,6 +30,7 @@ class Consumer(Thread):
         self.client.username_pw_set("cg4002", "password")
         self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, mqtt_constant.MESSAGE_QUEUE_PORT_NUMBER)
         self.grenadeQuery_queue = queue
+        self.has_logout = has_logout
 
         self.client.on_subscribe = on_subscribe
         self.client.on_message = self.on_message
@@ -43,9 +44,8 @@ class Consumer(Thread):
 
     def run(self):
         print("start subscribing data from HiveMQ")
-        self.client.loop_forever()
-
-
-if __name__ == "__main__":
-    q = Queue()
-    Consumer(q).start()
+        self.client.loop_start()
+        while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
+            pass
+        self.client.loop_stop()
+        print("consumer disconnects")

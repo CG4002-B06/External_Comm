@@ -2,8 +2,21 @@ from pynq import Overlay, allocate
 from constants.Actions import Action
 from AI.StartIdentification import *
 
-mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT}
-overlay = Overlay('design_3_wrapper.bit')
+mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.INACTIVE}
+overlay = Overlay('design_5_wrapper.bit')
+
+
+def most_frequent(List):
+    counter = 0
+    num = List[0]
+
+    for i in List:
+        curr_frequency = List.count(i)
+        if(curr_frequency> counter):
+            counter = curr_frequency
+            num = i
+
+    return num
 
 def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
@@ -35,7 +48,7 @@ def find_consecutive_num(arr):
 
 def getSlidingWindows(readings):
     result = []
-    for i in range(0, len(readings) - 18 + 1, 1):
+    for i in range(0, len(readings) - 10 + 1, 1):
         result.append(readings[i:i + 6])
     return result
 
@@ -48,7 +61,7 @@ def flattenWindows(readings):
 def predict(readings):
     flattenedRows = flattenWindows(readings)
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
-    predicted_action = mappedAction[np.max(list_of_actions)]
+    predicted_action = mappedAction[most_frequent(list_of_actions)]
     # predicted_action = find_consecutive_num(list_of_actions)
     print("predict action: " + str(predicted_action))
     return predicted_action

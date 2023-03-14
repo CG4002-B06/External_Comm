@@ -15,7 +15,7 @@ def detect_move(data, window_size, slide_val):
         window_data = data.iloc[i:i+window_size, :6].values
         windows[i // slide_val, :, :] = window_data
         threshold = calculate_threshold(window_data)
-        if threshold > 500:
+        if threshold > 8000:
             start_of_move_flag = True
     return start_of_move_flag
 
