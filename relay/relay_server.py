@@ -5,7 +5,6 @@ import struct
 from constants.Actions import Action
 from constants import ai_constant
 
-
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
 
@@ -13,29 +12,32 @@ cached_data = []
 lk = Lock()
 event, connection_established = Event(), Event()
 
-class RelayServer(Thread):
-    server_port = 6667
 
-    def __init__(self, action_queue, hp_queue):
+class RelayServer(Thread):
+    server_port = 6666
+
+    def __init__(self, action_queue, hp_queue, has_logout):
         super().__init__()
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
         self.action_queue = action_queue
         self.hp_queue = hp_queue
+        self.has_logout = has_logout
 
     def serve_request(self, connection_socket):
         hello_packet = connection_socket.recv(2).decode()
         connection_socket.send(b'A')
         print("hello packet: " + hello_packet)
-        player_id = int(hello_packet[1])
+        player_id = int(hello_packet[1]) - 1
 
         send_socket, addr = self.server_socket.accept()
-        Thread(target=send, args=(send_socket, self.hp_queue)).start()
+        send_thread = Thread(target=send, args=(send_socket, self.hp_queue, self.has_logout[player_id]))
+        send_thread.start()
         print("second connection established")
         connection_established.set()
 
-        while True:
+        while not self.has_logout[player_id].is_set():
             data = b''
             while not data.endswith(b'_'):
                 _d = connection_socket.recv(1)
@@ -74,17 +76,31 @@ class RelayServer(Thread):
                 lk.release()
                 print(msg)
 
+        connection_socket.close()
+        send_thread.join()
+        print("connection socket " + str(player_id) + "closes")
+
+
     def run(self):
-        while True:
+        threads = []
+        while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
             connection_socket, client_addr = self.server_socket.accept()
-            Thread(target=self.serve_request, args=(connection_socket,)).start()
+            t = Thread(target=self.serve_request, args=(connection_socket,))
+            t.start()
+            threads.append(t)
             print("accept the first connection")
             connection_established.wait()
             connection_established.clear()
 
-def send(socket, hp_queue):
-    while True:
-        print("waiting for data")
+        for thread in threads:
+            thread.join()
+        print("relay server closes")
+
+
+def send(send_socket, hp_queue, has_logout):
+    while not has_logout.is_set():
         data = hp_queue.get()
         print("send data: " + str(data))
-        socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
+        send_socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
+    send_socket.close()
+    print("send socket closes")

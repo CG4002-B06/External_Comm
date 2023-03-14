@@ -1,6 +1,8 @@
 import datetime
+import random
 from constants.Actions import Action
 from constants.player_constant import *
+
 
 class Player:
     # basic status of players upon start or resurge
@@ -13,7 +15,7 @@ class Player:
     bullet_damage = 10
     max_bullet_number = 6
 
-    def __init__(self, player_id, hp_queue):
+    def __init__(self, player_id, hp_queue, has_logout):
         self.player_id = player_id
         self.opponent = None
         self.hp = Player.max_hp
@@ -25,6 +27,8 @@ class Player:
         self.action = Action.NONE
         self.num_deaths = 0
         self.hp_queue = hp_queue
+        self.has_logout = has_logout
+        self.action_list = [Action.SHIELD] * 4 + [Action.RELOAD] * 4 + [Action.GRENADE] * 4
 
     def __str__(self):
         return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have died {} times".format(
@@ -57,10 +61,10 @@ class Player:
     def process_action(self, action, query_result=None):
         if query_result is None:
             query_result = {}
-        if action.value == Action.RELOAD.value:
-            self.__process_reload()
-        elif action.value == Action.SHOOT.value:
+        if action.value == Action.SHOOT.value:
             self.__process_shoot(query_result)
+        elif action.value == Action.RELOAD.value:
+            self.__process_reload()
         elif action.value == Action.GRENADE.value:
             self.__process_grenade(query_result)
         elif action.value == Action.SHIELD.value:
@@ -78,23 +82,33 @@ class Player:
         self.num_deaths = expected_status.get("num_deaths")
         if expected_status.get("shield_time") != 0:
             self.last_shield_active_time = datetime.datetime.now() - \
-                                       datetime.timedelta(seconds=expected_status.get("shield_time"))
+                                           datetime.timedelta(seconds=expected_status.get("shield_time"))
 
     def check_action(self, action):
+        print(str(len(self.action_list)))
         self.action = action
+        if action == Action.SHOOT:
+            return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None, action
+
+        if (len(self.action_list) > 0 and action == Action.LOGOUT)\
+                or (action in [Action.GRENADE, Action.RELOAD, Action.SHIELD] and action not in self.action_list):
+            action = random.choice(self.action_list)
+            self.action = action
+
+        if action in [Action.GRENADE, Action.RELOAD, Action.SHIELD]:
+            self.action_list.remove(action)
+
         if action == Action.RELOAD:
-            return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None
-        elif action == Action.SHOOT:
-            return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None
+            return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None, action
         elif action == Action.GRENADE:
-            return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None
+            return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None, action
         elif action == Action.SHIELD:
             if self.num_shield <= 0:
-                return SHIELD_ERROR_MESSAGE
+                return SHIELD_ERROR_MESSAGE, action
             elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() < 10:
-                return SHIELD_COOLDOWN_MESSAGE
-            return None
-        return None
+                return SHIELD_COOLDOWN_MESSAGE, action
+            return None, action
+        return None, action
 
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
@@ -128,7 +142,12 @@ class Player:
         self.shield_health = Player.max_shield_hp
 
     def __process_logout(self):
-        pass
+        self.has_logout.set()
+        self.hp_queue.put(str({
+            self.player_id: {
+                "action": "logout"
+            }
+        }))
 
     def __process_none(self):
         pass
@@ -177,7 +196,7 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
-        
+
         self.hp_queue.put(str({
             self.player_id: {
                 "health": str(self.hp).zfill(3)
