@@ -52,15 +52,12 @@ if __name__ == '__main__':
     relay_server.start()
     print("relay server start")
 
-    t = Thread(target=user_input)
-    t.start()
-
     # ai = Thread(target=ai.start_prediction, args=(action_queues[0], has_logout))
     # ai.start()
     # print("ai start")
-    # while True:
-    #     data = input()
-    #     action_queues[1].put([Action(data), {"p1": True}])
+    while True:
+         data = input()
+         action_queues[0].put([Action(data), {"p1": True}])
 
     # ai.join()
     relay_server.join()

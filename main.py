@@ -8,9 +8,9 @@ from game_engine.eval_client import Eval_Client
 from constants import eval_server_constant, game_state
 from game_engine import GameEngine
 from constants import mqtt_constant, game_state
-from relay.relay_server import RelayServer
+from relay.relay_server import RelayServer, eval_client as ec
 
-# import AI.ai_prediction as ai
+import AI.ai_prediction as ai
 
 action_queues = [Queue(), Queue()]  # queue to receive action messages determined by AI
 visualizer_queue = Queue()  # queue to send messages to the publisher
@@ -24,6 +24,7 @@ def user_input():
         data = input()
         try:
             action_queues[0].put([Action(data), {"p1": True}])
+            print(action_queues)
         except Exception:
             return
 
@@ -31,14 +32,6 @@ def user_input():
 if __name__ == '__main__':
     if game_state.ONE_PLAYER:
         has_logout[1].set()
-
-    eval_client = None
-    if game_state.HAS_EVAL:
-        eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
-    game_engine = GameEngine.GameEngine(action_queues, visualizer_queue, grenadeQuery_queue, hp_queue,
-                                        has_logout, game_state.ONE_PLAYER, eval_client)
-    game_engine.start()
-    print("game engine start")
 
     producer = Producer(visualizer_queue, mqtt_constant.PUBLISH_TOPIC_V, has_logout)
     producer.start()
@@ -53,14 +46,26 @@ if __name__ == '__main__':
     print("relay server start")
 
 
-    # ai = Thread(target=ai.start_prediction, args=(action_queues[0], has_logout))
-    # ai.start()
-    # print("ai start")
-    # while True:
-    #     data = input()
-    #     action_queues[1].put([Action(data), {"p1": True}])
+    ai = Thread(target=ai.start_prediction, args=(action_queues[0], has_logout))
+    ai.start()
+    print("ai start")
 
-    # ai.join()
+    
+    eval_client = None
+    ec.wait()
+    if game_state.HAS_EVAL:
+        eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
+    game_engine = GameEngine.GameEngine(action_queues, visualizer_queue, grenadeQuery_queue, hp_queue,
+                                        has_logout, game_state.ONE_PLAYER, eval_client)
+    game_engine.start()
+    print("game engine start")
+
+
+    while True:
+        data = input()
+        action_queues[0].put([Action(data), {"p1": True}])
+
+    ai.join()
     relay_server.join()
     consumer.join()
     producer.join()

@@ -3,7 +3,7 @@ import json
 from .Player import *
 from threading import Thread, Event
 from utils.player_utils import *
-
+from relay.relay_server import disconnection
 
 class GameEngine(Thread):
     def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, hp_queue,
@@ -76,9 +76,6 @@ class GameEngine(Thread):
             "p2": self.players[1].get_status(need_shield_time=False),
         }
 
-        if error:
-            message["error"] = error
-
         self.visualizer_queue.put(json.dumps(message))
 
     def __build_player_object(self, player_id, action, query_result):
@@ -88,11 +85,13 @@ class GameEngine(Thread):
             self.players[player_id].process_action(action, query_result)
         if action != Action.GRENADE:
             player_object.update(self.players[player_id].get_status())
-            if action == Action.SHOOT:
-                player_object.update({"isHit": query_result.get("p" + str(player_id + 1))})
 
+        print(query_result)
+        player_object.update({"isHit": query_result.get("p" + str(player_id + 1))})
         if check_result:
             player_object["invalid"] = check_result
+
+        player_object["disconnected"] = disconnection.is_set()
         return player_object, check_result is None
 
     def __send_normal_packet(self, player1, player2, error=""):
@@ -101,9 +100,6 @@ class GameEngine(Thread):
             "p1": player1,
             "p2": player2
         }
-
-        if error:
-            message["error"] = error
 
         self.visualizer_queue.put(json.dumps(message))
 

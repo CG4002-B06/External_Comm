@@ -1,7 +1,8 @@
 from socket import *
+import pandas as pd
 from threading import Thread, Lock, Event
 import struct
-
+from AI.StartIdentification import detect_move
 from constants.Actions import Action
 from constants import ai_constant
 
@@ -11,10 +12,11 @@ GLOVES_FORMAT = '<c3s6h'
 cached_data = []
 lk = Lock()
 event, connection_established = Event(), Event()
-
+eval_client = Event()
+disconnection = Event()
 
 class RelayServer(Thread):
-    server_port = 6666
+    server_port = 6674
 
     def __init__(self, action_queue, hp_queue, has_logout):
         super().__init__()
@@ -26,18 +28,22 @@ class RelayServer(Thread):
         self.has_logout = has_logout
 
     def serve_request(self, connection_socket):
+        global cached_data
         hello_packet = connection_socket.recv(2).decode()
         connection_socket.send(b'A')
         print("hello packet: " + hello_packet)
-        player_id = int(hello_packet[1]) - 1
+        player_id = int(hello_packet[1])
 
         send_socket, addr = self.server_socket.accept()
-        send_thread = Thread(target=send, args=(send_socket, self.hp_queue, self.has_logout[player_id]))
+        send_thread = Thread(target=send, args=(send_socket, self.hp_queue, self.has_logout[player_id - 1]))
         send_thread.start()
         print("second connection established")
         connection_established.set()
+        eval_client.set()
 
-        while not self.has_logout[player_id].is_set():
+
+        flag = False
+        while not self.has_logout[player_id - 1].is_set():
             data = b''
             while not data.endswith(b'_'):
                 _d = connection_socket.recv(1)
@@ -61,9 +67,16 @@ class RelayServer(Thread):
             if len(data) == 0:
                 print('no more data from the client')
                 break
-
             if data == b'B':
                 break
+            if data == b'D':
+                print("disconnected")
+                disconnection.set()
+                while connection_socket.recv(1) != b'R':
+                    pass
+                disconnection.clear()
+                print("connection is back")
+                continue
 
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
@@ -74,8 +87,13 @@ class RelayServer(Thread):
                 lk.acquire()
                 cached_data.append(list(msg)[2:])
                 print(len(cached_data))
-                if len(cached_data) >= ai_constant.ROW_SIZE:
+                if not flag and len(cached_data) >= ai_constant.DETECT_MOVE_SIZE:
+                    flag = detect_move(pd.DataFrame(cached_data[0: ai_constant.DETECT_MOVE_SIZE]))
+                    cached_data = cached_data[2:]
+
+                if flag and len(cached_data) >= ai_constant.ROW_SIZE:
                     event.set()
+                    flag = False
                 lk.release()
                 print(msg)
 
