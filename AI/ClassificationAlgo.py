@@ -6,7 +6,7 @@ from datetime import datetime
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.NONE}
 overlay = Overlay('design_11_wrapper.bit')
 
-
+#trained on 10
 def most_frequent(List):
     counter = 0
     num = List[0]
