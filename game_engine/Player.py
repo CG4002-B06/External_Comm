@@ -28,11 +28,6 @@ class Player:
         self.num_deaths = 0
         self.hp_queue = hp_queue
         self.has_logout = has_logout
-        self.action_list = [Action.SHIELD] * 4 + [Action.RELOAD] * 4 + [Action.GRENADE] * 4
-
-    def __str__(self):
-        return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have died {} times".format(
-            self.hp, self.grenades, self.num_shield, self.bullets, self.action, self.num_deaths)
 
     def set_opponent(self, opponent):
         self.opponent = opponent
@@ -74,35 +69,38 @@ class Player:
         self.__process_none()
 
     def correct_status(self, expected_status):
-        self.hp = expected_status.get("hp")
+        update_message = {}
+        if self.hp != expected_status.get("hp"):
+            update_message["health"] = expected_status.get("hp")
+            self.hp = expected_status.get("hp")
+
+        if self.bullets != expected_status.get("bullets"):
+            update_message["bullets"] = expected_status.get("bullets")
+            self.bullets = expected_status.get("bullets")
+
+        if expected_status.get("shield_time") != 0:
+            self.last_shield_active_time = datetime.datetime.now() - \
+                                        datetime.timedelta(seconds=expected_status.get("shield_time"))
+
         self.num_shield = expected_status.get("num_shield")
-        self.bullets = expected_status.get("bullets")
         self.grenades = expected_status.get("grenades")
         self.action = Action(expected_status.get("action"))
         self.num_deaths = expected_status.get("num_deaths")
-        if expected_status.get("shield_time") != 0:
-            self.last_shield_active_time = datetime.datetime.now() - \
-                                           datetime.timedelta(seconds=expected_status.get("shield_time"))
+
+        if len(update_message) > 0:
+            self.hp_queue.put(str({self.player_id: update_message}))
 
     def check_action(self, action):
-        print(str(len(self.action_list)))
         self.action = action
         if action == Action.SHOOT:
             return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None, action
-
-        if (len(self.action_list) > 0 and action == Action.LOGOUT)\
-                or (action in [Action.GRENADE, Action.RELOAD, Action.SHIELD] and action not in self.action_list):
-            action = random.choice(self.action_list)
-            self.action = action
-
-        if action in [Action.GRENADE, Action.RELOAD, Action.SHIELD]:
-            self.action_list.remove(action)
-
+        if action == Action.NONE:
+            return None, action
         if action == Action.RELOAD:
             return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None, action
-        elif action == Action.GRENADE:
+        if action == Action.GRENADE:
             return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None, action
-        elif action == Action.SHIELD:
+        if action == Action.SHIELD:
             if self.num_shield <= 0:
                 return SHIELD_ERROR_MESSAGE, action
             elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() < 10:
@@ -124,11 +122,6 @@ class Player:
 
         if is_hit:
             self.opponent.shot()
-        self.hp_queue.put(str({
-            self.player_id: {
-                "bullets": str(self.bullets).zfill(3)
-            }
-        }))
 
     def __process_grenade(self, query_result):
         self.grenades -= 1

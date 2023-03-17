@@ -1,11 +1,12 @@
 from pynq import Overlay, allocate
 from constants.Actions import Action
 from AI.StartIdentification import *
+from datetime import datetime
 
-mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.INACTIVE}
-overlay = Overlay('design_5_wrapper.bit')
+mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.NONE}
+overlay = Overlay('design_11_wrapper.bit')
 
-
+#trained on 10
 def most_frequent(List):
     counter = 0
     num = List[0]
@@ -29,6 +30,7 @@ def classifyMove(flattenedRow):
     dma.sendchannel.wait()
     dma.recvchannel.wait()
     action = int(output_buffer)
+    print(datetime.now())
     return action
 
 def find_consecutive_num(arr):
@@ -48,8 +50,9 @@ def find_consecutive_num(arr):
 
 def getSlidingWindows(readings):
     result = []
-    for i in range(0, len(readings) - 10 + 1, 1):
-        result.append(readings[i:i + 6])
+    for i in range(0, len(readings) - 18 + 1, 1):
+        result.append(readings[i * 6 + 2 : i * 6 + 8])
+    print(result)
     return result
 
 
@@ -63,6 +66,7 @@ def predict(readings):
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
     predicted_action = mappedAction[most_frequent(list_of_actions)]
     # predicted_action = find_consecutive_num(list_of_actions)
+    print(list_of_actions)
     print("predict action: " + str(predicted_action))
     return predicted_action
 

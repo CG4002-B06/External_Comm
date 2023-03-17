@@ -1,12 +1,11 @@
 import json
 
 from .Player import *
-from threading import Thread, Event
+from threading import Thread
 from utils.player_utils import *
 
-
 class GameEngine(Thread):
-    def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, hp_queue,
+    def __init__(self, action_queues, visualizer_queue, grenadeQuery_queue, relay_queue,
                  has_logout, is_one_player, eval_client=None):
         super().__init__()
         self.action_queues = action_queues
@@ -15,7 +14,7 @@ class GameEngine(Thread):
         self.grenadeQuery_queue = grenadeQuery_queue
         self.is_one_player = is_one_player
         self.has_logout = has_logout
-        self.players = [Player("p1", hp_queue, self.has_logout[0]), Player("p2", hp_queue, self.has_logout[1])]
+        self.players = [Player("p1", relay_queue, self.has_logout[0]), Player("p2", relay_queue, self.has_logout[1])]
         self.players[0].set_opponent(self.players[1])
         self.players[1].set_opponent(self.players[0])
 
@@ -36,12 +35,12 @@ class GameEngine(Thread):
 
             # if any of action is grenade, retrieve query response and update status
             query_result = {}
-            if action1.value == Action.GRENADE.value and valid_action1:
+            if action1 == Action.GRENADE and valid_action1:
                 query_result.update(self.grenadeQuery_queue.get())
                 self.players[0].process_action(action1, query_result)
                 player_object1 = self.players[0].get_status(False)
 
-            if action2.value == Action.GRENADE.value and valid_action2:
+            if action2 == Action.GRENADE and valid_action2:
                 query_result.update(self.grenadeQuery_queue.get())
                 self.players[1].process_action(action2, query_result)
                 player_object2 = self.players[1].get_status(False)
@@ -55,7 +54,7 @@ class GameEngine(Thread):
                     self.__send_correction_packet()
                     continue
             # if any of action is grenade, need to send post-update status to visualizer for UI update
-            if Action.GRENADE.value in [action1.value, action2.value]:
+            if Action.GRENADE in [action1, action2]:
                 self.__send_normal_packet(player_object1, player_object2)
 
         print("game engine exits")
@@ -74,9 +73,6 @@ class GameEngine(Thread):
             "p2": self.players[1].get_status(need_shield_time=False),
         }
 
-        if error:
-            message["error"] = error
-
         self.visualizer_queue.put(json.dumps(message))
 
     def __build_player_object(self, player_id, action, query_result):
@@ -86,11 +82,11 @@ class GameEngine(Thread):
             self.players[player_id].process_action(action, query_result)
         if action != Action.GRENADE:
             player_object.update(self.players[player_id].get_status())
-            if action == Action.SHOOT:
-                player_object.update({"isHit": query_result.get("p" + str(player_id + 1))})
 
+        player_object.update({"isHit": query_result.get("p" + str(player_id + 1))})
         if check_result:
             player_object["invalid"] = check_result
+
         return player_object, check_result is None
 
     def __send_normal_packet(self, player1, player2, error=""):
@@ -99,9 +95,6 @@ class GameEngine(Thread):
             "p1": player1,
             "p2": player2
         }
-
-        if error:
-            message["error"] = error
 
         self.visualizer_queue.put(json.dumps(message))
 
