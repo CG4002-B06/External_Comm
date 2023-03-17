@@ -29,10 +29,6 @@ class Player:
         self.hp_queue = hp_queue
         self.has_logout = has_logout
 
-    def __str__(self):
-        return "Player has hp: {}, grenade: {}, shield: {}, bullet: {} and action: {}. You have died {} times".format(
-            self.hp, self.grenades, self.num_shield, self.bullets, self.action, self.num_deaths)
-
     def set_opponent(self, opponent):
         self.opponent = opponent
 
@@ -78,19 +74,18 @@ class Player:
             update_message["health"] = expected_status.get("hp")
             self.hp = expected_status.get("hp")
 
-        self.num_shield = expected_status.get("num_shield")
         if self.bullets != expected_status.get("bullets"):
             update_message["bullets"] = expected_status.get("bullets")
             self.bullets = expected_status.get("bullets")
 
-        self.grenades = expected_status.get("grenades")
-
-        self.action = Action(expected_status.get("action"))
-
-        self.num_deaths = expected_status.get("num_deaths")
         if expected_status.get("shield_time") != 0:
             self.last_shield_active_time = datetime.datetime.now() - \
                                         datetime.timedelta(seconds=expected_status.get("shield_time"))
+
+        self.num_shield = expected_status.get("num_shield")
+        self.grenades = expected_status.get("grenades")
+        self.action = Action(expected_status.get("action"))
+        self.num_deaths = expected_status.get("num_deaths")
 
         if len(update_message) > 0:
             self.hp_queue.put(str({self.player_id: update_message}))
@@ -101,12 +96,11 @@ class Player:
             return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None, action
         if action == Action.NONE:
             return None, action
-       
         if action == Action.RELOAD:
             return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None, action
-        elif action == Action.GRENADE:
+        if action == Action.GRENADE:
             return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None, action
-        elif action == Action.SHIELD:
+        if action == Action.SHIELD:
             if self.num_shield <= 0:
                 return SHIELD_ERROR_MESSAGE, action
             elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() < 10:

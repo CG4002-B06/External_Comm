@@ -21,4 +21,3 @@ def detect_move(data):
             start_of_move_flag = True
     return start_of_move_flag
 
-# start_of_move_flag = detect_move(data, window_size, slide_size)

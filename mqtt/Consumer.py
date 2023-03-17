@@ -39,13 +39,11 @@ class Consumer(Thread):
 
     def on_message(self, client, userdata, msg):
         msg = msg.payload.decode("utf8")
-        print(msg)
         self.grenadeQuery_queue.put(json.loads(msg))
 
     def run(self):
-        print("start subscribing data from HiveMQ")
         self.client.loop_start()
-        while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
-            pass
+        self.has_logout[0].wait()
+        self.has_logout[1].wait()
         self.client.loop_stop()
         print("consumer disconnects")

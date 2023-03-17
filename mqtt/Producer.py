@@ -25,9 +25,7 @@ class Producer(Thread):
         self.has_logout = has_logout
 
     def run(self):
-        print("start publishing data to HiveMQ")
         while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
             action = self.queue.get()
             self.client.publish(self.topic, payload=action, qos=1)
-            print("published message: " + str(action))
         print("publisher disconnects")

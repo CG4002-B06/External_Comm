@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Action(Enum):
     NONE = 'none'
     SHOOT = 'shoot'
@@ -7,4 +8,3 @@ class Action(Enum):
     GRENADE = 'grenade'
     SHIELD = 'shield'
     LOGOUT = 'logout'
-    INACTIVE = 'inactive'
