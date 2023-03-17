@@ -14,7 +14,7 @@ def start_prediction(action_queue, has_logout, id):
         lk.acquire()
         data = rs.cached_data[id][0:ai_constant.ROW_SIZE]
         rs.cached_data[id] = rs.cached_data[id][ai_constant.ROW_SIZE:]
-        queue_full.release()
+        queue_full.clear()
         lk.release()
         predicted_result = predict(data)
 
