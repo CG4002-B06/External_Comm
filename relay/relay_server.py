@@ -6,7 +6,6 @@ import struct
 from AI.StartIdentification import detect_move
 from constants.Actions import Action
 from constants import ai_constant, player_constant
-from main import barrier
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
@@ -20,12 +19,14 @@ connection_established = Semaphore(0)
 class RelayServer(Thread):
     server_port = 6674
 
-    def __init__(self, action_queue, relay_queue, event_queue, has_logout):
+    def __init__(self, action_queue, relay_queue,
+                 event_queue, barrier, has_logout):
         super().__init__()
+        self.barrier = barrier
         self.server_socket = socket(AF_INET, SOCK_STREAM)
+        self.server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
-        self.server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.action_queue = action_queue
         self.relay_queue = relay_queue
         self.event_queue = event_queue
@@ -62,9 +63,10 @@ class RelayServer(Thread):
         send_socket, addr = self.server_socket.accept()
         send_thread = Thread(target=send, args=(send_socket, self.relay_queue, self.has_logout[id - 1]))
         send_thread.start()
-        print(f"player:{id}'s sensor has initialised")
+        print(f"player{id}'s sensor has initialised")
         connection_established.release()
-        barrier.wait()
+        print(self.barrier.n_waiting)
+        self.barrier.wait()
 
         flag = False
         while not self.has_logout[id - 1].is_set():
@@ -112,6 +114,7 @@ class RelayServer(Thread):
             t = Thread(target=self.serve_request, args=(connection_socket,))
             t.start()
             threads.append(t)
+            print("accept new connection")
             connection_established.acquire()
 
         for thread in threads:

@@ -1,4 +1,5 @@
 import os
+import time
 from socket import *
 from threading import Thread
 
@@ -34,21 +35,25 @@ def start_tunnel():
     return tunnel2.local_bind_address
 
 
-def run(data_queue, event):
-    add = start_tunnel()
+def run(data_queue, event, id):
+    # add = start_tunnel()
     client1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client1.connect(add)
-    client1.sendall(b'H1')
+    # client1.connect(add)
+    client1.connect(("localhost", 6674))
+    client1.sendall(f'H{id}'.encode())
 
+    time.sleep(6)
     client2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client2.connect(add)
+    client2.connect(("localhost", 6674))
+    # client2.connect(add)
     t = Thread(target=receive_health_change, args=(client2, event))
     t.start()
 
     while not event.is_set():
         data = data_queue.get()
+        if data == "logout":
+            break
         client1.sendall(str(len(data)).encode("utf8") + b'_' + data)
-    t.join()
     client1.close()
 
 
