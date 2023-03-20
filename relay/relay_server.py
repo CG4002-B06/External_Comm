@@ -1,10 +1,11 @@
+import json
 from socket import *
 import pandas as pd
 from threading import Thread, Lock, Event, Semaphore
 import struct
 from AI.StartIdentification import detect_move
 from constants.Actions import Action
-from constants import ai_constant
+from constants import ai_constant, player_constant
 from main import barrier
 
 VEST_FORMAT = '<c2s?'
@@ -15,17 +16,19 @@ lk = [Lock(), Lock()]
 queue_full = [Event(), Event()]
 connection_established = Semaphore(0)
 
+
 class RelayServer(Thread):
     server_port = 6674
 
-    def __init__(self, action_queue, relay_queue, has_logout):
+    def __init__(self, action_queue, relay_queue, event_queue, has_logout):
         super().__init__()
         self.server_socket = socket(AF_INET, SOCK_STREAM)
         self.server_socket.bind(('', RelayServer.server_port))
         self.server_socket.listen(1)
         self.server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.action_queue = action_queue
-        self.hp_queue = relay_queue
+        self.relay_queue = relay_queue
+        self.event_queue = event_queue
         self.has_logout = has_logout
 
     def recv_msg(self, connection_socket):
@@ -57,7 +60,7 @@ class RelayServer(Thread):
         id = int(hello_packet[1])
 
         send_socket, addr = self.server_socket.accept()
-        send_thread = Thread(target=send, args=(send_socket, self.hp_queue, self.has_logout[id - 1]))
+        send_thread = Thread(target=send, args=(send_socket, self.relay_queue, self.has_logout[id - 1]))
         send_thread.start()
         print(f"player:{id}'s sensor has initialised")
         connection_established.release()
@@ -70,8 +73,12 @@ class RelayServer(Thread):
                 break
             if data == b'D':
                 print("disconnected")
+                self.event_queue.put(json.dumps({"p1": None, "p2": None,
+                                                 f"p{id}": player_constant.SENSOR_DISCONNECT_MSG}))
                 while connection_socket.recv(1) != b'R':
                     pass
+                self.event_queue.put(json.dumps({"p1": None, "p2": None,
+                                                 f"p{id}": player_constant.SENSOR_RECONNECT_MSG}))
                 print("connection is back")
                 continue
 
@@ -97,7 +104,6 @@ class RelayServer(Thread):
         connection_socket.close()
         send_thread.join()
         print("connection socket " + str(id) + "closes")
-
 
     def run(self):
         threads = []

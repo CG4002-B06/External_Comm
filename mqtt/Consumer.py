@@ -1,16 +1,12 @@
 import json
-import os
-from queue import Queue
 from threading import Thread
 import paho.mqtt.client as paho
 
 from paho import mqtt
 from constants import mqtt_constant
-from dotenv import load_dotenv
 
-load_dotenv()
-mq_username="cg4002"
-mq_password="password"
+mq_username = "cg4002"
+mq_password = "password"
 
 
 def on_connect(client, userdata, flags, rc, properties=None):

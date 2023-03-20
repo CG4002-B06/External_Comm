@@ -1,11 +1,13 @@
+import json
+
 from AI.ClassificationAlgo import predict
 import relay.relay_server as rs
 from constants.Actions import Action
-from constants import ai_constant
+from constants import ai_constant, player_constant
 import csv
 
 
-def start_prediction(action_queue, has_logout, id):
+def start_prediction(action_queue, event_queue, has_logout, id):
     lk = rs.lk[id]
     queue_full = rs.queue_full[id]
 
@@ -18,6 +20,10 @@ def start_prediction(action_queue, has_logout, id):
         lk.release()
         predicted_result = predict(data)
 
-        # TODO: needs to publish None to visualizer and asks players to repeat
-        if predicted_result != Action.NONE:
+        if predicted_result == Action.NONE:
+            event_queue.put(json.dumps({
+                "p1": None, "p2": None,
+                f"p{id + 1}": player_constant.REDO_ACTION_MSG
+            }))
+        else:
             action_queue.put([Action(predicted_result), {}])
