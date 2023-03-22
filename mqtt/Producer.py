@@ -18,7 +18,7 @@ class Producer(Thread):
         self.queue = queue
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-        self.client.username_pw_set(mq_username, mq_password)
+        self.client.username_pw_set("cg4002", "password")
         self.client.max_inflight_messages_set(mqtt_constant.MAX_INFLIGHT)
         self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, 8883)
         self.topic = topic

@@ -44,7 +44,6 @@ class GameEngine(Thread):
                 query_result.update(self.grenadeQuery_queue.get())
                 self.players[1].process_action(action2, query_result)
                 player_object2 = self.players[1].get_status(False)
-
             if self.eval_client is not None:
                 # check against the eval server
                 expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
@@ -54,7 +53,6 @@ class GameEngine(Thread):
                     self.__correct_status(expected_status)
                     self.__send_correction_packet()
                     continue
-
             # if any of action is grenade, need to send post-update status to visualizer for UI update
             if Action.GRENADE in [action1, action2]:
                 self.__send_normal_packet(player_object1, player_object2)
