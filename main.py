@@ -1,7 +1,7 @@
 import json
 import threading
 from queue import Queue
-from threading import Event, Thread
+from threading import Event
 
 from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
@@ -9,8 +9,6 @@ from game_engine.eval_client import Eval_Client
 from game_engine.GameEngine import GameEngine
 from constants import mqtt_constant, game_state, eval_server_constant, player_constant
 import relay.relay_server as rs
-
-
 # import AI.ai_prediction as ai
 
 action_queues = [Queue(), Queue()]  # queue to receive action messages determined by AI
@@ -66,6 +64,7 @@ if __name__ == '__main__':
         "p1": player_constant.INIT_COMPLETE_MSG,
         "p2": player_constant.INIT_COMPLETE_MSG
     }))
+
 
     # ai1.join()
     # ai2.join()

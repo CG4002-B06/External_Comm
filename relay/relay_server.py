@@ -60,33 +60,27 @@ class RelayServer(Thread):
         print("hello packet: " + hello_packet)
         id = int(hello_packet[1])
 
-        send_socket, addr = self.server_socket.accept()
-        send_thread = Thread(target=send, args=(send_socket, self.relay_queue, self.has_logout[id - 1]))
+        print(connection_socket.recv(3))
+        send_thread = Thread(target=send, args=(connection_socket, self.relay_queue, self.has_logout[id - 1]))
         send_thread.start()
         print(f"player{id}'s sensor has initialised")
         connection_established.release()
-        print(self.barrier.n_waiting)
         self.barrier.wait()
 
         flag = False
         while not self.has_logout[id - 1].is_set():
             data = self.recv_msg(connection_socket)
             if data == b'B':
+                self.relay_queue.put("logout")
                 break
-            if data == b'D':
-                print("disconnected")
-                self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                                 f"p{id}": player_constant.SENSOR_DISCONNECT_MSG}))
-                while connection_socket.recv(1) != b'R':
-                    pass
-                self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                                 f"p{id}": player_constant.SENSOR_RECONNECT_MSG}))
-                print("connection is back")
+            if data == b'Q':
+                self.handle_beetle_disconnection(id, connection_socket)
                 continue
 
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
                 self.action_queue.put([Action.SHOOT, {"p" + str(id): msg[2]}])
+                print(msg)
 
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
@@ -102,10 +96,20 @@ class RelayServer(Thread):
                     queue_full[id - 1].set()
 
                 lk[id - 1].release()
+                print(msg)
 
-        connection_socket.close()
         send_thread.join()
         print("connection socket " + str(id) + "closes")
+
+    def handle_beetle_disconnection(self, id, connection_socket):
+        print("disconnected")
+        self.event_queue.put(json.dumps({"p1": None, "p2": None,
+                                         f"p{id}": player_constant.SENSOR_DISCONNECT_MSG}))
+        while connection_socket.recv(1) != b'R':
+            pass
+        self.event_queue.put(json.dumps({"p1": None, "p2": None,
+                                         f"p{id}": player_constant.SENSOR_RECONNECT_MSG}))
+        print("connection is back")
 
     def run(self):
         threads = []
@@ -126,6 +130,8 @@ class RelayServer(Thread):
 def send(send_socket, relay_queue, has_logout):
     while not has_logout.is_set():
         data = relay_queue.get()
+        if data == "logout":
+            send_socket.close()
         print("send data: " + str(data))
         send_socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
     send_socket.close()
