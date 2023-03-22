@@ -1,7 +1,7 @@
 from pynq import Overlay, allocate
 from constants.Actions import Action
-from AI.StartIdentification import *
 from datetime import datetime
+import numpy as np
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.NONE}
 overlay = Overlay('design_11_wrapper.bit')

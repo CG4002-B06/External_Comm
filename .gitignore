@@ -6,3 +6,4 @@ pyvenv.cfg
 *.pyc
 eval_sever/evaluation_logs/*
 .env
+data/*

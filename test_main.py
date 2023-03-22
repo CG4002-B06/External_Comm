@@ -5,9 +5,8 @@ from constants.Actions import Action
 from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
 from game_engine.eval_client import Eval_Client
-from constants import eval_server_constant, game_state
 from game_engine import GameEngine
-from constants import mqtt_constant, game_state
+from constants import constant
 from relay.relay_server import RelayServer
 
 # import AI.ai_prediction as ai
@@ -29,18 +28,18 @@ def user_input():
 
 
 if __name__ == '__main__':
-    if game_state.ONE_PLAYER:
+    if constant.ONE_PLAYER:
         has_logout[1].set()
 
     eval_client = None
-    if game_state.HAS_EVAL:
-        eval_client = Eval_Client(eval_server_constant.IP_ADDRESS, eval_server_constant.PORT_NUMBER)
+    if constant.HAS_EVAL:
+        eval_client = Eval_Client(constant.IP_ADDRESS, constant.PORT_NUMBER)
     game_engine = GameEngine.GameEngine(action_queues, visualizer_queue, grenadeQuery_queue, hp_queue,
-                                        has_logout, game_state.ONE_PLAYER, eval_client)
+                                        has_logout, constant.ONE_PLAYER, eval_client)
     game_engine.start()
     print("game engine start")
 
-    producer = Producer(visualizer_queue, mqtt_constant.PUBLISH_TOPIC_V, has_logout)
+    producer = Producer(visualizer_queue, constant.PUBLISH_TOPIC_V, has_logout)
     producer.start()
     print("producer start")
 

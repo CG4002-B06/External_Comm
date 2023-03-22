@@ -1,9 +1,9 @@
-import json
+# import json
 
-from AI.ClassificationAlgo import predict
+# from AI.ClassificationAlgo import predict
 import relay.relay_server as rs
-from constants.Actions import Action
-from constants import ai_constant, player_constant
+# from constants.Actions import Action
+from constants import constant
 import csv
 
 class bcolors:
@@ -17,18 +17,18 @@ class bcolors:
 def start_prediction(action_queue, event_queue, has_logout, id):
     lk = rs.lk[id]
     queue_full = rs.queue_full[id]
-    action = 'reload'
+    action = 'shield'
     counter = 810
 
     while not has_logout.is_set():
         queue_full.wait()
         lk.acquire()
-        data = rs.cached_data[id][0:ai_constant.ROW_SIZE]
-        rs.cached_data[id] = rs.cached_data[id][ai_constant.ROW_SIZE:]
+        data = rs.cached_data[id][0:constant.ROW_SIZE]
+        rs.cached_data[id] = rs.cached_data[id][constant.ROW_SIZE:]
         queue_full.clear()
         lk.release()
 
-        filename = action + str(counter) + '.csv'
+        filename = f"{action}_{id}_{counter}.csv"
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
 
@@ -41,7 +41,7 @@ def start_prediction(action_queue, event_queue, has_logout, id):
             print(f"{bcolors.OKGREEN}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
             print(f"{bcolors.OKGREEN}{bcolors.BOLD}{data}{bcolors.ENDC}")
         counter += 1
-        
+
 
 
         # predicted_result = predict(data)

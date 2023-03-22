@@ -1,7 +1,6 @@
 import datetime
-import random
 from constants.Actions import Action
-from constants.player_constant import *
+from constants.constant import *
 
 
 class Player:

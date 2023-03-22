@@ -1,11 +1,10 @@
 import json
 from socket import *
 import pandas as pd
-from threading import Thread, Lock, Event, Semaphore
+from threading import Thread, Lock, Event
 import struct
-from AI.StartIdentification import detect_move
 from constants.Actions import Action
-from constants import ai_constant, player_constant
+from constants import constant
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
@@ -13,6 +12,14 @@ GLOVES_FORMAT = '<c3s6h'
 cached_data = [[], []]
 lk = [Lock(), Lock()]
 queue_full = [Event(), Event()]
+
+class bcolors:
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
 
 
 class RelayServer(Thread):
@@ -60,7 +67,6 @@ class RelayServer(Thread):
         print(f"player{id}'s sensor has initialised")
         self.barrier.wait()
 
-        flag = False
         while not self.has_logout[id - 1].is_set():
             data = self.recv_msg(connection_socket)
             if data == b'B':
@@ -79,16 +85,16 @@ class RelayServer(Thread):
                 lk[id - 1].acquire()
                 cached_data[id - 1].append(list(msg)[2:])
 
-                if not flag and len(cached_data[id - 1]) >= ai_constant.DETECT_MOVE_SIZE:
-                    flag = detect_move(pd.DataFrame(cached_data[id - 1][0: ai_constant.DETECT_MOVE_SIZE]))
-                    cached_data[id - 1] = cached_data[id - 1][2:]
-
-                if flag and len(cached_data[id - 1]) >= ai_constant.ROW_SIZE:
-                    flag = False
+                if len(cached_data[id - 1]) >= constant.ROW_SIZE:
                     queue_full[id - 1].set()
 
+                if id - 1 == 0:
+                    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
+                else:
+                    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
+
                 lk[id - 1].release()
-                print(msg)
+
 
         connection_socket.close()
         print("connection socket " + str(id) + "closes")
@@ -96,11 +102,11 @@ class RelayServer(Thread):
     def handle_beetle_disconnection(self, id, connection_socket):
         print(f"{id} disconnected")
         self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                         f"p{id}": player_constant.SENSOR_DISCONNECT_MSG}))
+                                         f"p{id}": constant.SENSOR_DISCONNECT_MSG}))
         while connection_socket.recv(2) != f'R{id}'.encode():
             pass
         self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                         f"p{id}": player_constant.SENSOR_RECONNECT_MSG}))
+                                         f"p{id}": constant.SENSOR_RECONNECT_MSG}))
         print(f"connection {id} is back")
 
     def run(self):
