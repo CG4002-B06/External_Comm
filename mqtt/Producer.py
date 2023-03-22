@@ -5,13 +5,6 @@ from threading import Thread
 from paho import mqtt
 from constants import mqtt_constant
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-mq_username="cg4002"
-mq_password="password"
-
 class Producer(Thread):
     def __init__(self, queue, topic, has_logout):
         super().__init__()

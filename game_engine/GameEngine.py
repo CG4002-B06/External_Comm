@@ -18,7 +18,6 @@ class GameEngine(Thread):
         self.players[0].set_opponent(self.players[1])
         self.players[1].set_opponent(self.players[0])
 
-
     def run(self):
         while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
             [action1, query1] = self.action_queues[0].get()

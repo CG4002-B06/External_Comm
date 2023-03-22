@@ -137,11 +137,6 @@ class Player:
 
     def __process_logout(self):
         self.has_logout.set()
-        self.hp_queue.put(str({
-            self.player_id: {
-                "action": "logout"
-            }
-        }))
 
     def __process_none(self):
         pass

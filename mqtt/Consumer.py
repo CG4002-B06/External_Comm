@@ -1,12 +1,8 @@
 import json
-from threading import Thread
 import paho.mqtt.client as paho
-
+from threading import Thread
 from paho import mqtt
 from constants import mqtt_constant
-
-mq_username = "cg4002"
-mq_password = "password"
 
 
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -27,10 +23,8 @@ class Consumer(Thread):
         self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, mqtt_constant.MESSAGE_QUEUE_PORT_NUMBER)
         self.grenadeQuery_queue = queue
         self.has_logout = has_logout
-
         self.client.on_subscribe = on_subscribe
         self.client.on_message = self.on_message
-
         self.client.subscribe(mqtt_constant.CONSUMER_TOPIC, qos=1)
 
     def on_message(self, client, userdata, msg):
