@@ -4,6 +4,6 @@ lib/*
 pyvenv.cfg
 .idea/*
 *.pyc
-eval_sever/evaluation_logs/*
+eval_sever/*
 .env
 data/*

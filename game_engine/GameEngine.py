@@ -20,31 +20,32 @@ class GameEngine(Thread):
 
     def run(self):
         while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
+            query_result = {}
             [action1, query1] = self.action_queues[0].get()
             if not self.is_one_player:
                 [action2, query2] = self.action_queues[1].get()
             else:
                 [action2, query2] = [Action.NONE, {}]
+            query_result.update(query1)
+            query_result.update(query2)
 
-            # check validness of player actions and build the json payload
-            # process and update status if action is not grenade
-            player_object1, valid_action1 = self.__build_player_object(0, action1, query1)
-            player_object2, valid_action2 = self.__build_player_object(1, action2, query2)
-            self.__send_normal_packet(player_object1, player_object2)
+            # query for grenade result (if needed)
+            grenades = 0
+            if action1 == Action.GRENADE:
+                self.__send_query_packet("p1")
+                grenades += 1
+            if action2 == Action.GRENADE:
+                self.__send_query_packet("p2")
+                grenades += 1
 
-            # if any of action is grenade, retrieve query response and update status
-            query_result = {}
-            if action1 == Action.GRENADE and valid_action1:
+            for i in range(0, grenades):
                 query_result.update(self.grenadeQuery_queue.get())
-                self.players[0].process_action(action1, query_result)
-                player_object1 = self.players[0].get_status(False)
 
-            if action2 == Action.GRENADE and valid_action2:
-                query_result.update(self.grenadeQuery_queue.get())
-                self.players[1].process_action(action2, query_result)
-                player_object2 = self.players[1].get_status(False)
+            player_object1 = self.__build_player_object(0, action1, query_result)
+            player_object2 = self.__build_player_object(1, action2, query_result)
+
+            # check against eval server
             if self.eval_client is not None:
-                # check against the eval server
                 expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
                 # if status mismatches, send correction packet
                 if status_has_discrepancy(self.players[0], expected_status.get("p1")) or \
@@ -52,10 +53,8 @@ class GameEngine(Thread):
                     self.__correct_status(expected_status)
                     self.__send_correction_packet()
                     continue
-            # if any of action is grenade, need to send post-update status to visualizer for UI update
-            if Action.GRENADE in [action1, action2]:
-                self.__send_normal_packet(player_object1, player_object2)
 
+            self.__send_normal_packet(player_object1, player_object2)
         print("game engine exits")
 
     def __build_eval_payload(self):
@@ -75,24 +74,37 @@ class GameEngine(Thread):
         self.visualizer_queue.put(json.dumps(message))
 
     def __build_player_object(self, player_id, action, query_result):
-        check_result, action = self.players[player_id].check_action(action)
-        player_object = {"action": action.value}
-        if not check_result and action != Action.GRENADE:
+        check_result = self.players[player_id].check_action(action)
+        player_object = {"action": action.value, "isHit": query_result.get("p" + str(player_id + 1), True)}
+        if not check_result:
             self.players[player_id].process_action(action, query_result)
-        if action != Action.GRENADE:
-            player_object.update(self.players[player_id].get_status())
-
-        player_object.update({"isHit": query_result.get("p" + str(player_id + 1))})
-        if check_result:
+        else:
             player_object["invalid"] = check_result
 
-        return player_object, check_result is None
+        player_object.update(self.players[player_id].get_status())
+        return player_object
 
-    def __send_normal_packet(self, player1, player2, error=""):
+    def __send_normal_packet(self, player1, player2):
         message = {
             "correction": False,
             "p1": player1,
             "p2": player2
+        }
+
+        self.visualizer_queue.put(json.dumps(message))
+
+    def __send_query_packet(self, player_id):
+        message = {
+            "correction": False,
+            "p1": {
+                "action": Action.NONE.value
+            },
+            "p2": {
+                "action": Action.NONE.value
+            },
+            player_id: {
+                "action": Action.GRENADE.value
+            }
         }
 
         self.visualizer_queue.put(json.dumps(message))

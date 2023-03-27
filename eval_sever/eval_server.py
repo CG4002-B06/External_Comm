@@ -4,7 +4,7 @@ import os
 import sys
 import random as random
 import time
-import tkinter as tk
+
 from _socket import SHUT_RDWR
 import socket
 import threading
@@ -14,8 +14,6 @@ from Crypto.Util.Padding import unpad
 import traceback
 from queue import Queue
 
-from tkinter import ttk
-from tkinter.constants import HORIZONTAL, VERTICAL
 
 from MoveEngine import MoveEngine
 from GameState import GameState
@@ -24,10 +22,9 @@ from PlayerState import PlayerStateBase
 
 
 # Global flags
-DISABLE_GUI             = False     # the server will not display any GUI
+DISABLE_GUI             = True     # the server will not display any GUI
 SINGLE_PLAYER_MODE      = False     # the server is for 1-player test
 DEBUG_FLAG              = False
-CLOSE_WINDOW            = False     # close the GUI
 
 LOG_DIR = os.path.join(os.path.dirname(__file__), 'evaluation_logs')
 message_queue = Queue()     # message to be displayed on the window
@@ -78,7 +75,9 @@ class TurnGenerator:
             message_queue.put(self.get_display_position()[1])
 
             # we want to ensure students are in the correct position
+
             _ = input("Press enter when players are in correct position : ")
+
         else:
             # we are in single player mode
             # to test the bluetooth disconnection we will ask the student to step out
@@ -180,32 +179,11 @@ class Server(threading.Thread):
             then reads the encryption key for the Ultra96's messages from STDIN.
             Returns the encryption key.
         """
-        # FIXME
-        ipaddress_dict = {
-            '192.168.95.224': 'B01',
-            '192.168.95.225': 'B02',
-            '192.168.95.226': 'B03',
-            '192.168.95.246': 'B04',
-            '192.168.95.223': 'B05',
-            '192.168.95.222': 'B06',
-            '192.168.95.220': 'B07',
-            '192.168.95.250': 'B08',
-            '192.168.95.219': 'B10',
-            '192.168.95.234': 'B11',
-            '192.168.95.235': 'B12',
-            '192.168.95.236': 'B13',
-            '192.168.95.221': 'B14',
-            '192.168.95.247': 'B15',
-            '192.168.95.248': 'B16',
-            '192.168.95.244': 'B17',
-            '192.168.95.249': 'B18',
-            '192.168.95.243': 'B19'}
         # Wait for a connection
         print('Waiting for a connection')
         self.connection, client_address = self.server_socket.accept()
         print('--------------------------------------------------')
         print('        Connected to:', client_address[0])
-        # print('                     ', ipaddress_dict[client_address[0]])
         print('--------------------------------------------------')
         secret_key = "PLSPLSPLSPLSWORK"
 
@@ -406,7 +384,6 @@ class Server(threading.Thread):
         # Listen for incoming connections
         self.server_socket.listen(1)
         self.secret_key = self.setup_connection()      # Wait for secret key from Ultra96
-
         while not self.shutdown.is_set():
             try:
                 game_state_received = self.recv_game_state()
@@ -463,8 +440,6 @@ class Server(threading.Thread):
                 self.stop()
 
         print("bye:")
-        global CLOSE_WINDOW
-        CLOSE_WINDOW = True
 
 
 class Eval:
@@ -485,34 +460,21 @@ class Eval:
         self.server = Server(self.port_num, self.group_id)
         self.server.start()
 
-        # Initialize base window
-        self.display_window = tk.Tk()
-
     def check_loop_status(self):
-        """
-        Function to periodically update GUI
-        """
-        global CLOSE_WINDOW
         while True:     # enables us to have a single point of return from the function
-            if CLOSE_WINDOW:
-                self.display_window.destroy()  # OK in this function.
-            else:
+            text = message_queue.get()
+            if text == 'BYE':
+                break
+            self.p1_action_text.set(text)
+
+            if not SINGLE_PLAYER_MODE:
                 text = message_queue.get()
                 if text == 'BYE':
                     break
-                self.p1_action_text.set(text)
+                self.p2_action_text.set(text)
 
-                if not SINGLE_PLAYER_MODE:
-                    text = message_queue.get()
-                    if text == 'BYE':
-                        break
-                    self.p2_action_text.set(text)
-
-                self.turn_text.set(f"{self.server.turn_gen.cur_turn + 1} / {self.max_num_actions + 1}")
-                self.display_window.update()
+            self.turn_text.set(f"{self.server.turn_gen.cur_turn + 1} / {self.max_num_actions + 1}")
             break
-
-        self.display_window.after(10, self.check_loop_status)  # Check again after delay.
 
     def start(self):
         """
@@ -521,80 +483,10 @@ class Eval:
         global DISABLE_GUI
         global SINGLE_PLAYER_MODE
 
-        if not DISABLE_GUI:
-            # Draw the window
-            self.display_window.title = "Evaluation Server"
-            main_frame = tk.Frame(
-                self.display_window
-            )
-            main_frame.pack(expand=True, fill='both')
-
-            # Finished turns
-            self.turn_text = tk.StringVar()
-            turn_label = tk.Label(main_frame, textvariable=self.turn_text, font=("times", 80))
-            turn_label.pack(fill='x')
-
-            # Player 1 column
-            self.p1_frame = tk.Frame(main_frame, bg="red")
-            self.p1_frame.pack(expand=True, fill='both', side='left')
-            # Player 1 title
-            p1_label = tk.Label(self.p1_frame, text="Player 1", font=('times', 100, 'bold'), bg="red")
-            p1_label.pack(ipady=20)
-            # Player 1 variable frame
-            p1_var_frame = tk.Frame(self.p1_frame, bg='#ffcccb')
-            p1_var_frame.pack(expand=True, fill='both')
-            # Player 1 action variable
-            self.p1_action_text = tk.StringVar()
-            p1_action_label = tk.Label(p1_var_frame, textvariable=self.p1_action_text,
-                                       font=("times", 100), bg='#ffcccb')
-            p1_action_label.pack(expand=True)
-            # Player 2 variable separator
-            p1_var_sep = ttk.Separator(p1_var_frame, orient=HORIZONTAL)
-            p1_var_sep.pack(expand=True, fill='x')
-
-            if not SINGLE_PLAYER_MODE:
-                # Player 2 column
-                self.p2_frame = tk.Frame(main_frame, bg="blue")
-                self.p2_frame.pack(expand=True, fill='both', side='right')
-                # Player 2 title
-                p2_label = tk.Label(self.p2_frame, text="Player 2", font=('times', 100, 'bold'), bg="blue")
-                p2_label.pack(ipady=20)
-                # Player 2 variable frame
-                p2_var_frame = tk.Frame(self.p2_frame, bg='#add8e6')
-                p2_var_frame.pack(expand=True, fill='both')
-                # Player 2 action variable
-                self.p2_action_text = tk.StringVar()
-                p2_action_label = tk.Label(p2_var_frame, textvariable=self.p2_action_text,
-                                           font=("times", 100), bg='#add8e6')
-                p2_action_label.pack(expand=True)
-                # Player 2 variable separator
-                p2_var_sep = ttk.Separator(p2_var_frame, orient=HORIZONTAL)
-                p2_var_sep.pack(expand=True, fill='x')
-
-                # Player column separator
-                col_sep = ttk.Separator(main_frame, orient=VERTICAL)
-                col_sep.pack(expand=True, fill='y')
-
-            # Update window based on data in server
-            self.display_window.update()
-            self.max_num_actions = len(self.server.turn_gen.p1_actions) - 1
-            # display none till connection established
-            self.turn_text.set(f"0 / {self.max_num_actions + 1}  G{self.group_id}")
-            self.p1_action_text.set('none')
-            if not SINGLE_PLAYER_MODE:
-                self.p2_action_text.set('none')
-            self.display_window.update()
-
-            self.check_loop_status()  # Start periodic checking.
-            self.display_window.mainloop()
-            print ('closing window')
+        try:
             self.server.join()
-        else:
-            # wait for the server to terminate
-            try:
-                self.server.join()
-            except KeyboardInterrupt:
-                self.server.stop()
+        except KeyboardInterrupt:
+            self.server.stop()
 
 
 if __name__ == '__main__':
