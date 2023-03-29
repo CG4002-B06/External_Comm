@@ -59,15 +59,15 @@ if __name__ == '__main__':
     game_engine.start()
     print("game engine start")
 
+    event_queue.put(json.dumps({
+        "p1": constant.INIT_COMPLETE_MSG,
+        "p2": constant.INIT_COMPLETE_MSG
+    }))
+
     while True:
         action1, action2 = input(), input()
         action_queues[0].put([Action(action1), {"p1": True}])
         action_queues[1].put([Action(action2), {"p2": True}])
-    #
-    # event_queue.put(json.dumps({
-    #     "p1": constant.INIT_COMPLETE_MSG,
-    #     "p2": constant.INIT_COMPLETE_MSG
-    # }))
 
     # ai1.join()
     # ai2.join()

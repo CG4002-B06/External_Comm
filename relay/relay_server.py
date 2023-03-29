@@ -103,6 +103,9 @@ class RelayServer(Thread):
         print(f"{id} disconnected")
         self.event_queue.put(json.dumps({"p1": None, "p2": None,
                                          f"p{id}": constant.SENSOR_DISCONNECT_MSG}))
+        lk[id - 1].acquire()
+        cached_data[id - 1].clear()
+        lk[id - 1].release()
         while connection_socket.recv(2) != f'R{id}'.encode():
             pass
         self.event_queue.put(json.dumps({"p1": None, "p2": None,

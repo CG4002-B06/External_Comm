@@ -17,8 +17,8 @@ class bcolors:
 def start_prediction(action_queue, event_queue, has_logout, id):
     lk = rs.lk[id]
     queue_full = rs.queue_full[id]
-    action = 'shield'
-    counter = 810
+    # action = 'shield'
+    # counter = 810
 
     while not has_logout.is_set():
         queue_full.wait()
@@ -28,19 +28,19 @@ def start_prediction(action_queue, event_queue, has_logout, id):
         queue_full.clear()
         lk.release()
 
-        filename = f"{action}_{id}_{counter}.csv"
-        with open(filename, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-
-            for row in data:
-                writer.writerow(row)
-        if id == 0:
-            print(f"{bcolors.OKBLUE}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
-            print(f"{bcolors.OKBLUE}{bcolors.BOLD}{data}{bcolors.ENDC}")
-        else:
-            print(f"{bcolors.OKGREEN}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
-            print(f"{bcolors.OKGREEN}{bcolors.BOLD}{data}{bcolors.ENDC}")
-        counter += 1
+        # filename = f"{action}_{id}_{counter}.csv"
+        # with open(filename, 'w', newline='') as csvfile:
+        #     writer = csv.writer(csvfile)
+        #
+        #     for row in data:
+        #         writer.writerow(row)
+        # if id == 0:
+        #     print(f"{bcolors.OKBLUE}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
+        #     print(f"{bcolors.OKBLUE}{bcolors.BOLD}{data}{bcolors.ENDC}")
+        # else:
+        #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
+        #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}{data}{bcolors.ENDC}")
+        # counter += 1
 
 
 
