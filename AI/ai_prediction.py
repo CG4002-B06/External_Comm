@@ -1,8 +1,7 @@
-# import json
-
-# from AI.ClassificationAlgo import predict
+import json
+from AI.ClassificationAlgo import predict
 import relay.relay_server as rs
-# from constants.Actions import Action
+from constants.Actions import Action
 from constants import constant
 import csv
 
@@ -42,14 +41,15 @@ def start_prediction(action_queue, event_queue, has_logout, id):
         #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}{data}{bcolors.ENDC}")
         # counter += 1
 
-
-
-        # predicted_result = predict(data)
-        #
-        # if predicted_result == Action.NONE:
-        #     event_queue.put(json.dumps({
-        #         "p1": None, "p2": None,
-        #         f"p{id + 1}": player_constant.REDO_ACTION_MSG
-        #     }))
-        # else:
-        #     action_queue.put([Action(predicted_result), {}])
+        predicted_result = predict(data)
+        if id == 0:
+            print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        else:
+            print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        if predicted_result == Action.NONE:
+            event_queue.put(json.dumps({
+                "p1": None, "p2": None,
+                f"p{id + 1}": constant.REDO_ACTION_MSG
+                }))
+        else:
+            action_queue.put([Action(predicted_result), {}])

@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.NONE}
-overlay = Overlay('design_1_wrapper.bit')
+overlay = Overlay('design_3_wrapper.bit')
 
 #trained on 10
 def most_frequent(List):
@@ -21,7 +21,7 @@ def most_frequent(List):
 
 def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
-    input_buffer = allocate(shape=(40,), dtype=np.float32)
+    input_buffer = allocate(shape=(60,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
     for x, n in enumerate(flattenedRow):
         input_buffer[x] = n
@@ -66,8 +66,6 @@ def predict(readings):
     list_of_actions = [classifyMove(flattenedRow) for flattenedRow in flattenedRows]
     predicted_action = mappedAction[most_frequent(list_of_actions)]
     # predicted_action = find_consecutive_num(list_of_actions)
-    print(list_of_actions)
-    print("predict action: " + str(predicted_action))
     return predicted_action
 
 if __name__ == "__main__":
