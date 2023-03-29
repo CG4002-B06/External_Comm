@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.NONE}
-overlay = Overlay('design_11_wrapper.bit')
+overlay = Overlay('design_1_wrapper.bit')
 
 #trained on 10
 def most_frequent(List):
@@ -21,7 +21,7 @@ def most_frequent(List):
 
 def classifyMove(flattenedRow):
     dma = overlay.axi_dma_0
-    input_buffer = allocate(shape=(60,), dtype=np.float32)
+    input_buffer = allocate(shape=(40,), dtype=np.float32)
     output_buffer = allocate(shape=(1,), dtype=np.float32)
     for x, n in enumerate(flattenedRow):
         input_buffer[x] = n
