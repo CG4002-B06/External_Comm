@@ -48,16 +48,19 @@ if __name__ == '__main__':
     consumer.start()
     print("consumer start")
 
-    relay_server = RelayServer(action_queues[0], hp_queue, has_logout)
-    relay_server.start()
-    print("relay server start")
+    # relay_server = RelayServer(action_queues[0], hp_queue, has_logout)
+    # relay_server.start()
+    # print("relay server start")
 
     # ai = Thread(target=ai.start_prediction, args=(action_queues[0], has_logout))
     # ai.start()
     # print("ai start")
     while True:
-         data = input()
-         action_queues[0].put([Action(data), {"p1": True}])
+        print("Enter p1 and p2 actions: \n")
+        data1 = input()
+        data2 = input()
+        action_queues[0].put([Action(data1), {"p1": True}])
+        action_queues[1].put([Action(data2), {"p2": True}])
 
     # ai.join()
     relay_server.join()
