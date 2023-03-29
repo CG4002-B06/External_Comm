@@ -42,12 +42,10 @@ def run(data_queue, event, id):
     client1.connect(("localhost", 6674))
     client1.sendall(f'H{id}'.encode())
 
-    time.sleep(6)
-    client2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client2.connect(("localhost", 6674))
-    # client2.connect(add)
-    t = Thread(target=receive_health_change, args=(client2, event))
+    time.sleep(3)
+    t = Thread(target=receive_health_change, args=(client1, event))
     t.start()
+    client1.sendall(b'R')
 
     while not event.is_set():
         data = data_queue.get()

@@ -1,11 +1,10 @@
 import json
 from socket import *
 import pandas as pd
-from threading import Thread, Lock, Event, Semaphore
+from threading import Thread, Lock, Event
 import struct
-from AI.StartIdentification import detect_move
 from constants.Actions import Action
-from constants import ai_constant, player_constant
+from constants import constant
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
@@ -13,7 +12,14 @@ GLOVES_FORMAT = '<c3s6h'
 cached_data = [[], []]
 lk = [Lock(), Lock()]
 queue_full = [Event(), Event()]
-connection_established = Semaphore(0)
+
+class bcolors:
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
 
 
 class RelayServer(Thread):
@@ -50,72 +56,72 @@ class RelayServer(Thread):
                 data = b''
                 continue
             data += _d
-
         return data
 
     def serve_request(self, connection_socket):
         global cached_data
-        hello_packet = connection_socket.recv(2).decode()
-        connection_socket.send(b'A')
+
+        hello_packet = connection_socket.recv(4)[2:].decode()
         print("hello packet: " + hello_packet)
         id = int(hello_packet[1])
-
-        send_socket, addr = self.server_socket.accept()
-        send_thread = Thread(target=send, args=(send_socket, self.relay_queue, self.has_logout[id - 1]))
-        send_thread.start()
         print(f"player{id}'s sensor has initialised")
-        connection_established.release()
-        print(self.barrier.n_waiting)
         self.barrier.wait()
 
-        flag = False
         while not self.has_logout[id - 1].is_set():
             data = self.recv_msg(connection_socket)
             if data == b'B':
                 break
-            if data == b'D':
-                print("disconnected")
-                self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                                 f"p{id}": player_constant.SENSOR_DISCONNECT_MSG}))
-                while connection_socket.recv(1) != b'R':
-                    pass
-                self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                                 f"p{id}": player_constant.SENSOR_RECONNECT_MSG}))
-                print("connection is back")
+            if data == b'Q':
+                self.handle_beetle_disconnection(id, connection_socket)
                 continue
 
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
-                self.action_queue.put([Action.SHOOT, {"p" + str(id): msg[2]}])
+                self.action_queue[id - 1].put([Action.SHOOT, {"p" + str(id): msg[2]}])
+                print(msg)
 
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
                 lk[id - 1].acquire()
                 cached_data[id - 1].append(list(msg)[2:])
 
-                if not flag and len(cached_data[id - 1]) >= ai_constant.DETECT_MOVE_SIZE:
-                    flag = detect_move(pd.DataFrame(cached_data[id - 1][0: ai_constant.DETECT_MOVE_SIZE]))
-                    cached_data[id - 1] = cached_data[id - 1][2:]
-
-                if flag and len(cached_data[id - 1]) >= ai_constant.ROW_SIZE:
-                    flag = False
+                if len(cached_data[id - 1]) >= constant.ROW_SIZE:
                     queue_full[id - 1].set()
+
+                if id - 1 == 0:
+                    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
+                else:
+                    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
 
                 lk[id - 1].release()
 
+
         connection_socket.close()
-        send_thread.join()
         print("connection socket " + str(id) + "closes")
+
+    def handle_beetle_disconnection(self, id, connection_socket):
+        print(f"{id} disconnected")
+        self.event_queue.put(json.dumps({"p1": None, "p2": None,
+                                         f"p{id}": constant.SENSOR_DISCONNECT_MSG}))
+        while connection_socket.recv(2) != f'R{id}'.encode():
+            pass
+        self.event_queue.put(json.dumps({"p1": None, "p2": None,
+                                         f"p{id}": constant.SENSOR_RECONNECT_MSG}))
+        print(f"connection {id} is back")
 
     def run(self):
         threads = []
+        connection_socket, client_addr = self.server_socket.accept()
+        send_thread = Thread(target=send, args=(connection_socket, self.relay_queue, self.has_logout))
+        threads.append(send_thread)
+        send_thread.start()
+
         for i in range(0, 10):
             connection_socket, client_addr = self.server_socket.accept()
             t = Thread(target=self.serve_request, args=(connection_socket,))
             t.start()
             threads.append(t)
             print("accept new connection")
-            connection_established.acquire()
 
         for thread in threads:
             thread.join()
@@ -124,7 +130,8 @@ class RelayServer(Thread):
 
 
 def send(send_socket, relay_queue, has_logout):
-    while not has_logout.is_set():
+    print("sending channel is ready")
+    while not (has_logout[0].is_set() and has_logout[1].is_set()):
         data = relay_queue.get()
         print("send data: " + str(data))
         send_socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))

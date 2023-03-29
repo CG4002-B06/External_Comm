@@ -1,7 +1,6 @@
 import datetime
-import random
 from constants.Actions import Action
-from constants.player_constant import *
+from constants.constant import *
 
 
 class Player:
@@ -93,20 +92,20 @@ class Player:
     def check_action(self, action):
         self.action = action
         if action == Action.SHOOT:
-            return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None, action
+            return SHOOT_ERROR_MESSAGE if self.bullets <= 0 else None
         if action == Action.NONE:
-            return None, action
+            return None
         if action == Action.RELOAD:
-            return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None, action
+            return RELOAD_ERROR_MESSAGE if self.bullets > 0 else None
         if action == Action.GRENADE:
-            return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None, action
+            return GRENADE_ERROR_MESSAGE if self.grenades <= 0 else None
         if action == Action.SHIELD:
             if self.num_shield <= 0:
-                return SHIELD_ERROR_MESSAGE, action
+                return SHIELD_ERROR_MESSAGE
             elif (datetime.datetime.now() - self.last_shield_active_time).total_seconds() < 10:
-                return SHIELD_COOLDOWN_MESSAGE, action
-            return None, action
-        return None, action
+                return SHIELD_COOLDOWN_MESSAGE
+            return None
+        return None
 
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
@@ -137,11 +136,6 @@ class Player:
 
     def __process_logout(self):
         self.has_logout.set()
-        self.hp_queue.put(str({
-            self.player_id: {
-                "action": "logout"
-            }
-        }))
 
     def __process_none(self):
         pass

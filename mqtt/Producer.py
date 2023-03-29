@@ -3,14 +3,7 @@ import paho.mqtt.client as paho
 
 from threading import Thread
 from paho import mqtt
-from constants import mqtt_constant
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
-mq_username="cg4002"
-mq_password="password"
+from constants import constant
 
 class Producer(Thread):
     def __init__(self, queue, topic, has_logout):
@@ -19,8 +12,8 @@ class Producer(Thread):
         self.client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         self.client.username_pw_set("cg4002", "password")
-        self.client.max_inflight_messages_set(mqtt_constant.MAX_INFLIGHT)
-        self.client.connect(mqtt_constant.MESSAGE_QUEUE_URL, 8883)
+        self.client.max_inflight_messages_set(constant.MAX_INFLIGHT)
+        self.client.connect(constant.MESSAGE_QUEUE_URL, 8883)
         self.topic = topic
         self.has_logout = has_logout
 
