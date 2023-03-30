@@ -78,7 +78,7 @@ class RelayServer(Thread):
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
                 self.action_queue[id - 1].put([Action.SHOOT, {"p" + str(id): msg[2]}])
-                # print(msg)
+                print(msg)
 
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
@@ -87,11 +87,6 @@ class RelayServer(Thread):
 
                 if len(cached_data[id - 1]) >= constant.ROW_SIZE:
                     queue_full[id - 1].set()
-
-                #if id - 1 == 0:
-                #    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
-                #else:
-                #    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
 
                 lk[id - 1].release()
 
@@ -136,7 +131,7 @@ def send(send_socket, relay_queue, has_logout):
     print("sending channel is ready")
     while not (has_logout[0].is_set() and has_logout[1].is_set()):
         data = relay_queue.get()
-        print("send data: " + str(data))
+        # print("send data: " + str(data))
         send_socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
     send_socket.close()
     print("send socket closes")

@@ -35,7 +35,6 @@ def classifyMove(flattenedRow):
 def find_consecutive_num(arr):
     curr_num = None
     curr_count = 0
-    print(arr)
     for num in arr:
         if num == curr_num:
             curr_count += 1
@@ -51,7 +50,6 @@ def getSlidingWindows(readings):
     result = []
     for i in range(0, len(readings) - 18 + 1, 1):
         result.append(readings[i * 6 + 2 : i * 6 + 8])
-    print(result)
     return result
 
 

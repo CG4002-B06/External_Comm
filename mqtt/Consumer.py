@@ -29,7 +29,6 @@ class Consumer(Thread):
 
     def on_message(self, client, userdata, msg):
         msg = msg.payload.decode("utf8")
-        print("consumer receives msg: " + msg)
         self.grenadeQuery_queue.put(json.loads(msg))
 
     def run(self):

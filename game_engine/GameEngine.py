@@ -28,7 +28,7 @@ class GameEngine(Thread):
                 [action2, query2] = [Action.NONE, {}]
             query_result.update(query1)
             query_result.update(query2)
-            print(str(action1) + " " + str(action2))
+
             # query for grenade result (if needed)
             grenades = 0
             if action1 == Action.GRENADE:
@@ -39,7 +39,11 @@ class GameEngine(Thread):
                 grenades += 1
             
             for i in range(0, grenades):
-                query_result.update(self.grenadeQuery_queue.get())
+                grenade_result = self.grenadeQuery_queue.get()
+                query_result = {
+                    "p1" : query_result.get("p1") or grenade_result.get("p1"),
+                    "p2": query_result.get("p2") or grenade_result.get("p2")
+                }
 
             player_object1 = self.__build_player_object(0, action1, query_result)
             player_object2 = self.__build_player_object(1, action2, query_result)
