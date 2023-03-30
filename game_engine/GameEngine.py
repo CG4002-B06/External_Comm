@@ -21,7 +21,6 @@ class GameEngine(Thread):
     def run(self):
         while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
             query_result = {}
-
             [action1, query1] = self.action_queues[0].get()
             if not self.is_one_player:
                 [action2, query2] = self.action_queues[1].get()
@@ -88,12 +87,6 @@ class GameEngine(Thread):
     def __send_query_packet(self, player_id):
         message = {
             "correction": False,
-            "p1": {
-                "action": Action.NONE.value
-            },
-            "p2": {
-                "action": Action.NONE.value
-            },
             player_id: {
                 "action": Action.GRENADE.value
             }

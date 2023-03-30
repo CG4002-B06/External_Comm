@@ -14,7 +14,7 @@ class Player:
     bullet_damage = 10
     max_bullet_number = 6
 
-    def __init__(self, player_id, hp_queue, has_logout):
+    def __init__(self, player_id, relay_queue, has_logout):
         self.player_id = player_id
         self.opponent = None
         self.hp = Player.max_hp
@@ -25,7 +25,7 @@ class Player:
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
         self.num_deaths = 0
-        self.hp_queue = hp_queue
+        self.relay_queue = relay_queue
         self.has_logout = has_logout
 
     def set_opponent(self, opponent):
@@ -87,7 +87,7 @@ class Player:
         self.num_deaths = expected_status.get("num_deaths")
 
         if len(update_message) > 0:
-            self.hp_queue.put(str({self.player_id: update_message}))
+            self.relay_queue.put(str({self.player_id: update_message}))
 
     def check_action(self, action):
         self.action = action
@@ -109,7 +109,7 @@ class Player:
 
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
-        self.hp_queue.put(str({
+        self.relay_queue.put(str({
             self.player_id: {
                 "bullets": str(self.bullets).zfill(3)
             }
@@ -135,6 +135,11 @@ class Player:
         self.shield_health = Player.max_shield_hp
 
     def __process_logout(self):
+        self.relay_queue.put(str({
+            self.player_id: {
+                "action": 'logout'
+            }
+        }))
         self.has_logout.set()
 
     def __process_none(self):
@@ -160,7 +165,7 @@ class Player:
 
         if self.hp <= 0:
             self.__resurge()
-        self.hp_queue.put(str({
+        self.relay_queue.put(str({
             self.player_id: {
                 "health": str(self.hp).zfill(3)
             }
@@ -185,7 +190,7 @@ class Player:
         if self.hp <= 0:
             self.__resurge()
 
-        self.hp_queue.put(str({
+        self.relay_queue.put(str({
             self.player_id: {
                 "health": str(self.hp).zfill(3)
             }
@@ -199,7 +204,7 @@ class Player:
         self.grenades = Player.max_grenade_number
         self.action = Action.NONE
         self.num_deaths += 1
-        self.hp_queue.put(str({
+        self.relay_queue.put(str({
             self.player_id: {
                 "bullets": str(self.bullets).zfill(3),
                 "health": str(self.hp).zfill(3)

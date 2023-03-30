@@ -40,57 +40,8 @@ def run(data_queue, event, id):
     client1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # client1.connect(add)
     client1.connect(("localhost", 6674))
-    client1.sendall(f'H{id}'.encode())
+    client1.sendall(f'2_R{id}'.encode())
+    event.wait()
 
-    time.sleep(3)
-    t = Thread(target=receive_health_change, args=(client1, event))
-    t.start()
-    client1.sendall(b'R')
-
-    while not event.is_set():
-        data = data_queue.get()
-        if data == "logout":
-            break
-        client1.sendall(str(len(data)).encode("utf8") + b'_' + data)
+    client1.sendall(b'1_B')
     client1.close()
-
-
-def receive_health_change(socket, event):
-    while not event.is_set():
-        while True:
-            data = b''
-            while not data.endswith(b'_'):
-                _d = socket.recv(1)
-                if not _d:
-                    data = b''
-                    continue
-                data += _d
-            if len(data) == 0:
-                print('no more data from the client')
-                break
-            data = data.decode("utf-8")
-            length = int(data[:-1])
-            # decode to get message
-            data = b''
-            while len(data) < length:
-                _d = socket.recv(length - len(data))
-                if not _d:
-                    data = b''
-                    continue
-                data += _d
-            if len(data) == 0:
-                print('no more data from the client')
-                break
-            response = eval(data.decode())
-            print(response)
-            if response.get("p1").get("action") == "logout":
-                socket.close()
-                return
-
-        # health1, health2 = response.get("p1"), response.get("p2")
-        # if health1:
-        #     health1 = int(health1)
-        # if health2:
-        #     health2 = int(health2)
-        # print("p1 health: " + str(health1))
-        # print("p2 health: " + str(health2))

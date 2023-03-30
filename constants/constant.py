@@ -28,8 +28,10 @@ CONSUMER_TOPIC = "QueryGrenade"
 MAX_INFLIGHT = 9999
 
 # Game State Constant
-HAS_EVAL=False
-ONE_PLAYER=False
+HAS_EVAL = False
+ONE_PLAYER = False
+END_GAME = "_GAME_ENDING_"
 
 # AI CONSTANT
 ROW_SIZE = 20
+

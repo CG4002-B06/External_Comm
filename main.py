@@ -3,6 +3,7 @@ import threading
 from queue import Queue
 from threading import Event, Thread
 
+from constants.constant import END_GAME
 from mqtt.Consumer import Consumer
 from mqtt.Producer import Producer
 from game_engine.eval_client import Eval_Client
@@ -64,6 +65,11 @@ if __name__ == '__main__':
         "p2": constant.INIT_COMPLETE_MSG
     }))
 
+    game_engine.join()
+    event_queue.put(END_GAME)
+    visualizer_queue.put(END_GAME)
+    relay_queue.put(END_GAME)
+
 
     ai1.join()
     ai2.join()
@@ -71,5 +77,5 @@ if __name__ == '__main__':
     consumer.join()
     producer1.join()
     producer2.join()
-    game_engine.join()
+
     print("bye")
