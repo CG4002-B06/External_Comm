@@ -30,7 +30,6 @@ def classifyMove(flattenedRow):
     dma.sendchannel.wait()
     dma.recvchannel.wait()
     action = int(output_buffer)
-    print(datetime.now())
     return action
 
 def find_consecutive_num(arr):

@@ -78,7 +78,7 @@ class RelayServer(Thread):
             if len(data) == 4:
                 msg = struct.unpack(VEST_FORMAT, data)
                 self.action_queue[id - 1].put([Action.SHOOT, {"p" + str(id): msg[2]}])
-                print(msg)
+                # print(msg)
 
             else:
                 msg = struct.unpack(GLOVES_FORMAT, data)
@@ -88,10 +88,10 @@ class RelayServer(Thread):
                 if len(cached_data[id - 1]) >= constant.ROW_SIZE:
                     queue_full[id - 1].set()
 
-                if id - 1 == 0:
-                    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
-                else:
-                    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
+                #if id - 1 == 0:
+                #    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
+                #else:
+                #    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
 
                 lk[id - 1].release()
 

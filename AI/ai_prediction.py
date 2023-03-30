@@ -42,10 +42,10 @@ def start_prediction(action_queue, event_queue, has_logout, id):
         # counter += 1
 
         predicted_result = predict(data)
-        if id == 0:
-            print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
-        else:
-            print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        #if id == 0:
+        #    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        #else:
+        #    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
         if predicted_result == Action.NONE:
             event_queue.put(json.dumps({
                 "p1": None, "p2": None,

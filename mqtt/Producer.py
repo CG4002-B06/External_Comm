@@ -20,5 +20,7 @@ class Producer(Thread):
     def run(self):
         while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
             action = self.queue.get()
-            self.client.publish(self.topic, payload=action, qos=1)
+            print("publishing: " + str(action))
+            result = self.client.publish(self.topic, payload=action, qos=1)
+            print(result.rc)
         print("publisher disconnects")
