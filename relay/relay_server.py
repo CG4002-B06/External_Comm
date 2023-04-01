@@ -24,7 +24,7 @@ class bcolors:
 
 
 class RelayServer(Thread):
-    server_port = 6674
+    server_port = 6666
 
     def __init__(self, action_queue, relay_queue,
                  event_queue, barrier, has_logout):
@@ -72,11 +72,10 @@ class RelayServer(Thread):
         self.barrier.wait()
 
         while not self.has_logout[id - 1].is_set():
-            data = self.recv_msg(connection_socket).decode()
-            print(data)
-            if data == 'B':
+            data = self.recv_msg(connection_socket)
+            if data == b'B':
                 break
-            if data[0] == 'Q':
+            if data == b'Q1' or data == b'Q2':
                 self.handle_beetle_disconnection(id, connection_socket)
                 continue
 
@@ -96,6 +95,11 @@ class RelayServer(Thread):
                 lk[id - 1].release()
 
         connection_socket.close()
+        lk[id - 1].acquire()
+        cached_data[id - 1].clear()
+        cached_data[id - 1].append(END_GAME)
+        queue_full[id - 1].set()
+        lk[id - 1].release()
         print("connection socket " + str(id) + " closes")
 
     def handle_beetle_disconnection(self, id, connection_socket):
