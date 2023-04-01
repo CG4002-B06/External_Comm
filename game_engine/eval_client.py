@@ -27,6 +27,8 @@ class Eval_Client:
         encrypted_text = self.__encrypt(plain_text)
         length = str(len(encrypted_text))
         self.socket.sendall(length.encode("utf8") + b'_' + encrypted_text)
+        print("send data to eval")
+
 
         receive_data_length = b''
         while not receive_data_length.endswith(b'_'):

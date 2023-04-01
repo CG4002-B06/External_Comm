@@ -4,6 +4,8 @@ import paho.mqtt.client as paho
 from threading import Thread
 from paho import mqtt
 from constants import constant
+from constants.constant import END_GAME
+
 
 class Producer(Thread):
     def __init__(self, queue, topic, has_logout):
@@ -18,7 +20,9 @@ class Producer(Thread):
         self.has_logout = has_logout
 
     def run(self):
-        while not (self.has_logout[0].is_set() and self.has_logout[1].is_set()):
+        while True:
             action = self.queue.get()
+            if action == END_GAME:
+                break
             self.client.publish(self.topic, payload=action, qos=1)
         print("publisher disconnects")

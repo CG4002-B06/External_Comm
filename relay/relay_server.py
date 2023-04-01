@@ -5,6 +5,7 @@ from threading import Thread, Lock, Event
 import struct
 from constants.Actions import Action
 from constants import constant
+from constants.constant import END_GAME
 
 VEST_FORMAT = '<c2s?'
 GLOVES_FORMAT = '<c3s6h'
@@ -23,7 +24,7 @@ class bcolors:
 
 
 class RelayServer(Thread):
-    server_port = 6674
+    server_port = 6666
 
     def __init__(self, action_queue, relay_queue,
                  event_queue, barrier, has_logout):
@@ -61,7 +62,10 @@ class RelayServer(Thread):
     def serve_request(self, connection_socket):
         global cached_data
 
-        hello_packet = connection_socket.recv(4)[2:].decode()
+        hello_packet = self.recv_msg(connection_socket).decode()
+        while hello_packet[0] != 'R':
+            hello_packet = self.recv_msg(connection_socket).decode()
+            print(hello_packet)
         print("hello packet: " + hello_packet)
         id = int(hello_packet[1])
         print(f"player{id}'s sensor has initialised")
@@ -71,7 +75,7 @@ class RelayServer(Thread):
             data = self.recv_msg(connection_socket)
             if data == b'B':
                 break
-            if data == b'Q':
+            if data == b'Q1' or data == b'Q2':
                 self.handle_beetle_disconnection(id, connection_socket)
                 continue
 
@@ -88,21 +92,24 @@ class RelayServer(Thread):
                 if len(cached_data[id - 1]) >= constant.ROW_SIZE:
                     queue_full[id - 1].set()
 
-                if id - 1 == 0:
-                    print(f"{bcolors.OKBLUE}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
-                else:
-                    print(f"{bcolors.OKGREEN}{bcolors.BOLD}{len(cached_data[id - 1])}{bcolors.ENDC}")
-
                 lk[id - 1].release()
 
-
         connection_socket.close()
-        print("connection socket " + str(id) + "closes")
+        lk[id - 1].acquire()
+        cached_data[id - 1].clear()
+        cached_data[id - 1].append(END_GAME)
+        queue_full[id - 1].set()
+        lk[id - 1].release()
+        print("connection socket " + str(id) + " closes")
 
     def handle_beetle_disconnection(self, id, connection_socket):
         print(f"{id} disconnected")
         self.event_queue.put(json.dumps({"p1": None, "p2": None,
                                          f"p{id}": constant.SENSOR_DISCONNECT_MSG}))
+        lk[id - 1].acquire()
+        cached_data[id - 1].clear()
+        lk[id - 1].release()
+
         while connection_socket.recv(2) != f'R{id}'.encode():
             pass
         self.event_queue.put(json.dumps({"p1": None, "p2": None,
@@ -112,11 +119,11 @@ class RelayServer(Thread):
     def run(self):
         threads = []
         connection_socket, client_addr = self.server_socket.accept()
-        send_thread = Thread(target=send, args=(connection_socket, self.relay_queue, self.has_logout))
+        send_thread = Thread(target=send, args=(connection_socket, self.relay_queue))
         threads.append(send_thread)
         send_thread.start()
 
-        for i in range(0, 10):
+        for i in range(0, 2):
             connection_socket, client_addr = self.server_socket.accept()
             t = Thread(target=self.serve_request, args=(connection_socket,))
             t.start()
@@ -129,11 +136,12 @@ class RelayServer(Thread):
         print("relay server closes")
 
 
-def send(send_socket, relay_queue, has_logout):
+def send(send_socket, relay_queue):
     print("sending channel is ready")
-    while not (has_logout[0].is_set() and has_logout[1].is_set()):
+    while True:
         data = relay_queue.get()
+        if data == END_GAME:
+            break
         print("send data: " + str(data))
         send_socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
-    send_socket.close()
     print("send socket closes")
