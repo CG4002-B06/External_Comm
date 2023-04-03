@@ -20,7 +20,7 @@ class Consumer(Thread):
         self.client.on_connect = on_connect
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         self.client.username_pw_set("cg4002", "password")
-        self.client.connect(constant.MESSAGE_QUEUE_URL, constant.MESSAGE_QUEUE_PORT_NUMBER)
+        self.client.connect(constant.MESSAGE_QUEUE_URL, constant.MESSAGE_QUEUE_PORT_NUMBER, keepalive=65535)
         self.grenadeQuery_queue = queue
         self.has_logout = has_logout
         self.client.on_subscribe = on_subscribe
