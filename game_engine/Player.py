@@ -107,6 +107,15 @@ class Player:
             return None
         return None
 
+    def check_logout(self):
+        if self.action == Action.LOGOUT:
+            self.relay_queue.put(str({
+                self.player_id: {
+                    "action": 'logout'
+                }
+            }))
+            self.has_logout.set()
+
     def __process_reload(self):
         self.bullets = Player.max_bullet_number
         self.relay_queue.put(str({
@@ -135,12 +144,7 @@ class Player:
         self.shield_health = Player.max_shield_hp
 
     def __process_logout(self):
-        self.relay_queue.put(str({
-            self.player_id: {
-                "action": 'logout'
-            }
-        }))
-        self.has_logout.set()
+        pass
 
     def __process_none(self):
         pass
