@@ -32,6 +32,9 @@ def start_prediction(action_queue, event_queue, has_logout, id):
         queue_full.clear()
         lk.release()
 
+        if data == [END_GAME]:
+            break
+
 
         # filename = f"{action}_{id}_{counter}.csv"
         # with open(filename, 'w', newline='') as csvfile:
@@ -59,3 +62,4 @@ def start_prediction(action_queue, event_queue, has_logout, id):
                 }))
         else:
             action_queue.put([Action(predicted_result), {}])
+    print(f"ai{id} exit")
