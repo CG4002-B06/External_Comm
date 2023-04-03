@@ -34,14 +34,19 @@ class GameEngine(Thread):
             for i in range(0, 2):
                 action = actions[i]
                 result = self.players[i].check_action(action)
-                player_object = {"action": action.value, "isHit": query_result.get(self.players[i].player_id, True)}
+                player_object = {"action": action.value}
                 if result:
                     player_object["invalid"] = result
                 else:
                     if action == Action.GRENADE:
                         self.__send_query_packet(self.players[i].player_id)
                         grenade_result = self.grenadeQuery_queue.get()
-                        query_result.update({self.players[i].player_id: grenade_result.get(self.players[i].player_id)})
+
+                        player_id = self.players[i].player_id
+                        isHit = grenade_result.get(player_id)
+                        query_result[player_id] = isHit
+                        player_object["isHit"] = isHit
+
                     self.players[i].process_action(action, query_result)
                 player_object.update(self.players[i].get_status())
                 player_objects.append(player_object)

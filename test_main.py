@@ -65,9 +65,10 @@ if __name__ == '__main__':
         "p2": constant.INIT_COMPLETE_MSG
     }))
 
-    action1, action2 = input(), input()
-    action_queues[0].put([Action(action1), {}])
-    action_queues[1].put([Action(action2), {}])
+    while True:
+        action1, action2 = input(), input()
+        action_queues[0].put([Action(action1), {}])
+        action_queues[1].put([Action(action2), {}])
 
     game_engine.join()
     event_queue.put(END_GAME)
@@ -79,6 +80,6 @@ if __name__ == '__main__':
     relay_server.join()
     consumer.join()
     producer1.join()
-    producer2.join()
+    # producer2.join()
 
     print("bye")

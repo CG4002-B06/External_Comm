@@ -15,7 +15,7 @@ class Producer(Thread):
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         self.client.username_pw_set("cg4002", "password")
         self.client.max_inflight_messages_set(constant.MAX_INFLIGHT)
-        self.client.connect(constant.MESSAGE_QUEUE_URL, 8883, keepalive=65535)
+        self.client.connect(constant.MESSAGE_QUEUE_URL, 8883, 3600)
         self.topic = topic
         self.has_logout = has_logout
 
@@ -24,5 +24,5 @@ class Producer(Thread):
             action = self.queue.get()
             if action == END_GAME:
                 break
-            self.client.publish(self.topic, payload=action, qos=1)
+            print(self.client.publish(self.topic, payload=action, qos=1))
         print("publisher disconnects")
