@@ -54,9 +54,13 @@ class GameEngine(Thread):
                         status_has_discrepancy(self.players[1], expected_status.get("p2")):
                     self.__correct_status(expected_status)
                     self.__send_correction_packet()
-                    continue
+                else:
+                    self.__send_normal_packet(player_objects)
+            else:
+                self.__send_normal_packet(player_objects)
 
-            self.__send_normal_packet(player_objects)
+            self.players[0].check_logout()
+            self.players[1].check_logout()
         print("game engine exits")
 
     def __build_eval_payload(self):
@@ -66,9 +70,10 @@ class GameEngine(Thread):
         }
         return json.dumps(payload)
 
-    def __send_correction_packet(self, error=""):
+    def __send_correction_packet(self):
         message = {
             "correction": True,
+            "query": False,
             "p1": self.players[0].get_status(need_shield_time=False),
             "p2": self.players[1].get_status(need_shield_time=False),
         }
@@ -78,6 +83,7 @@ class GameEngine(Thread):
     def __send_normal_packet(self, players):
         message = {
             "correction": False,
+            "query": False,
             "p1": players[0],
             "p2": players[1]
         }
@@ -87,6 +93,7 @@ class GameEngine(Thread):
     def __send_query_packet(self, player_id):
         message = {
             "correction": False,
+            "query": True,
             player_id: {
                 "action": Action.GRENADE.value
             }

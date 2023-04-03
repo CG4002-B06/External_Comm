@@ -70,12 +70,11 @@ if __name__ == '__main__':
     visualizer_queue.put(END_GAME)
     relay_queue.put(END_GAME)
 
-
-    ai1.join()
-    ai2.join()
-    relay_server.join()
     consumer.join()
     producer1.join()
     producer2.join()
+    relay_server.join()
+    ai1.join()
+    ai2.join()
 
     print("bye")
