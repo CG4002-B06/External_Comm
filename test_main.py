@@ -67,8 +67,8 @@ if __name__ == '__main__':
 
     while True:
         action1, action2 = input(), input()
-        action_queues[0].put([Action(action1), {}])
-        action_queues[1].put([Action(action2), {}])
+        action_queues[0].put([Action(action1), {"p1": True}])
+        action_queues[1].put([Action(action2), {"p2": True}])
 
     game_engine.join()
     event_queue.put(END_GAME)

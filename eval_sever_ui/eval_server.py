@@ -205,7 +205,7 @@ class Server(threading.Thread):
         self.connection, client_address = self.server_socket.accept()
         print('--------------------------------------------------')
         print('        Connected to:', client_address[0])
-        print('                     ', ipaddress_dict[client_address[0]])
+        # print('                     ', ipaddress_dict[client_address[0]])
         print('--------------------------------------------------')
 
         if DISABLE_GUI:
