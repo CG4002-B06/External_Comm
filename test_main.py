@@ -65,7 +65,7 @@ if __name__ == '__main__':
         "p2": constant.INIT_COMPLETE_MSG
     }))
 
-    while True:
+    for i in range(0, 3):
         action1 = input()
         isHit = (input() == "T")
         while Action(action1) == Action.NONE:
