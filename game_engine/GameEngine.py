@@ -38,15 +38,13 @@ class GameEngine(Thread):
                 if result:
                     player_object["invalid"] = result
                 else:
+                    player_id = self.players[i].player_id
                     if action == Action.GRENADE:
                         self.__send_query_packet(self.players[i].player_id)
                         grenade_result = self.grenadeQuery_queue.get()
+                        query_result[player_id] = grenade_result[player_id]
 
-                        player_id = self.players[i].player_id
-                        isHit = grenade_result.get(player_id)
-                        query_result[player_id] = isHit
-                        player_object["isHit"] = isHit
-
+                    player_object["isHit"] = query_result.get(player_id, True)
                     self.players[i].process_action(action, query_result)
                 player_object.update(self.players[i].get_status())
                 player_objects.append(player_object)

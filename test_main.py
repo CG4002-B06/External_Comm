@@ -66,9 +66,20 @@ if __name__ == '__main__':
     }))
 
     while True:
-        action1, action2 = input(), input()
-        action_queues[0].put([Action(action1), {}])
-        action_queues[1].put([Action(action2), {}])
+        action1 = input()
+        isHit = (input() == "T")
+        while Action(action1) == Action.NONE:
+            event_queue.put(json.dumps({"p1": constant.REDO_ACTION_MSG, "p2": None}))
+            action1 = input()
+
+        action_queues[0].put([Action(action1), {"p1": isHit}])
+
+        action2 = input()
+        isHit = (input() == "T")
+        while Action(action2) == Action.NONE:
+            event_queue.put(json.dumps({"p1": None, "p2": constant.REDO_ACTION_MSG}))
+            action2 = input()
+        action_queues[1].put([Action(action2), {"p2": isHit}])
 
     game_engine.join()
     event_queue.put(END_GAME)
