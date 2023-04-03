@@ -29,7 +29,7 @@ Player_JSON
 }
 
 eg:
-"{
+{
 	"p1": {
 		"hp": 10,
 		"action": "grenade",
@@ -50,13 +50,13 @@ eg:
 		"num_deaths": 5,
 		"num_shield": 2
 	}
-}"
+}
 
 Packet Format, sent by eval_server: Len_JSON
 1) "Len" is the length of "JSON#" sent as plain text
 2) "JSON" is the JSON represented as string
 3) "Len" and "JSON" are separated by a "_"
-Kindly refer the function GameState. send_plaintext in GameState.py for more details.
+Kindly refer the function GameState.send_plaintext in GameState.py for more details.
 
 Packet Format, received by eval_server: Len_crypt(JSON)
 1) "Len" is the length of "JSON" sent as plain text
