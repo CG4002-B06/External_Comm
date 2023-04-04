@@ -13,7 +13,6 @@ GLOVES_FORMAT = '<c3s6h'
 cached_data = [[], []]
 lk = [Lock(), Lock()]
 queue_full = [Event(), Event()]
-semaphore = Semaphore(0)
 
 class bcolors:
     OKBLUE = '\033[94m'
@@ -130,9 +129,7 @@ class RelayServer(Thread):
 
         connection_socket1, client_addr1 = self.server_socket.accept()
         print("receive sending channel 1")
-        connection_socket2, client_addr2 = self.server_socket.accept()
-        print("receive sending channel 2")
-        send_thread = Thread(target=send, args=(connection_socket1, connection_socket2, self.relay_queue))
+        send_thread = Thread(target=send, args=(connection_socket1, self.relay_queue))
         send_thread.start()
         threads.append(send_thread)
 
@@ -141,7 +138,6 @@ class RelayServer(Thread):
             t = Thread(target=self.serve_request, args=(connection,))
             t.start()
             threads.append(t)
-            semaphore.release()
 
         for thread in threads:
             thread.join()
@@ -149,16 +145,13 @@ class RelayServer(Thread):
         print("relay server closes")
 
 
-def send(send_socket1, send_socket2, relay_queue):
+def send(send_socket, relay_queue):
     print("sending channel is ready")
-    send_socket1.sendall(b'E')
-    semaphore.acquire()
-    send_socket2.sendall(b'E')
+    send_socket.sendall(b'E')
     while True:
         data = relay_queue.get()
         if data == END_GAME:
             break
         print("send data: " + str(data))
-        send_socket1.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
-        send_socket2.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
+        send_socket.sendall(str(len(data)).encode("utf8") + b'_' + data.encode("utf8"))
     print("send socket closes")
