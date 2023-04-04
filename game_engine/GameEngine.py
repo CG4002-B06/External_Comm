@@ -49,6 +49,7 @@ class GameEngine(Thread):
                 player_object.update(self.players[i].get_status())
                 player_objects.append(player_object)
 
+            print(query_result)
             # check against eval server
             if self.eval_client is not None:
                 expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
