@@ -61,5 +61,5 @@ def start_prediction(action_queue, event_queue, has_logout, id):
                 f"p{id + 1}": constant.REDO_ACTION_MSG
                 }))
         else:
-            action_queue.put([Action(predicted_result), {}])
+            action_queue.put([predicted_result, {}])
     print(f"ai{id} exit")
