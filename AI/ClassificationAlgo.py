@@ -4,7 +4,8 @@ from datetime import datetime
 import numpy as np
 
 mappedAction = {0: Action.SHIELD, 1: Action.GRENADE, 2: Action.RELOAD, 3: Action.LOGOUT, 4: Action.NONE}
-overlay = Overlay('design_4_wrapper.bit')
+overlay = Overlay('design_5_wrapper.bit')
+
 
 #trained on 10
 def most_frequent(List):
