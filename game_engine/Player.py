@@ -206,7 +206,6 @@ class Player:
         self.last_shield_active_time = datetime.datetime.min
         self.bullets = Player.max_bullet_number
         self.grenades = Player.max_grenade_number
-        self.action = Action.NONE
         self.num_deaths += 1
         self.relay_queue.put(str({
             self.player_id: {
