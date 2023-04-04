@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # print("ai starts")
 
     print("main thread waits at the barrier")
-    # barrier.wait()
+    barrier.wait()
 
     eval_client = None
     if constant.HAS_EVAL:
