@@ -1,7 +1,7 @@
 # EVAL SERVER CONSTANT
 # IP_ADDRESS = "137.132.92.184"
 IP_ADDRESS="localhost"
-PORT_NUMBER = 7002
+PORT_NUMBER = 7001
 
 # Game Prompt
 RELOAD_ERROR_MESSAGE = "Warning! \n\n Unable to reload as you still have ammo"
@@ -28,7 +28,7 @@ CONSUMER_TOPIC = "QueryGrenade"
 MAX_INFLIGHT = 9999
 
 # Game State Constant
-HAS_EVAL = False
+HAS_EVAL = True
 ONE_PLAYER = False
 END_GAME = "_GAME_ENDING_"
 
