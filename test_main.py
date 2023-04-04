@@ -1,5 +1,7 @@
 import json
+import random
 import threading
+import time
 from queue import Queue
 from threading import Event, Thread
 
@@ -32,8 +34,11 @@ if __name__ == '__main__':
     producer2 = Producer(event_queue, constant.PUBLISH_TOPIC_E, has_logout)
     producer2.start()
     print("producer 2 starts")
-    event_queue.put(json.dumps({"p1": constant.WAIT_SENSOR_INIT_MESSAGE,
-                                "p2": constant.WAIT_SENSOR_INIT_MESSAGE}))
+    event_queue.put(json.dumps({
+        "id": random.randint(0, 9999),
+        "p1": constant.WAIT_SENSOR_INIT_MESSAGE,
+        "p2": constant.WAIT_SENSOR_INIT_MESSAGE
+    }))
 
     consumer = Consumer(grenadeQuery_queue, has_logout)
     consumer.start()
@@ -61,36 +66,26 @@ if __name__ == '__main__':
     print("game engine start")
 
     event_queue.put(json.dumps({
+        "id": random.randint(0, 9999),
         "p1": constant.INIT_COMPLETE_MSG,
         "p2": constant.INIT_COMPLETE_MSG
     }))
 
-    for i in range(0, 3):
-        action1 = input()
-        isHit = (input() == "T")
-        while Action(action1) == Action.NONE:
-            event_queue.put(json.dumps({"p1": constant.REDO_ACTION_MSG, "p2": None}))
-            action1 = input()
 
-        action_queues[0].put([Action(action1), {"p1": isHit}])
-
-        action2 = input()
-        isHit = (input() == "T")
-        while Action(action2) == Action.NONE:
-            event_queue.put(json.dumps({"p1": None, "p2": constant.REDO_ACTION_MSG}))
-            action2 = input()
-        action_queues[1].put([Action(action2), {"p2": isHit}])
+    for i in range(0, 10):
+        action_queues[0].put([Action(input()), {"p1": True}])
+        action_queues[1].put([Action(input()), {"p2": True}])
 
     game_engine.join()
     event_queue.put(END_GAME)
     visualizer_queue.put(END_GAME)
     relay_queue.put(END_GAME)
 
-    # ai1.join()
-    # ai2.join()
-    relay_server.join()
     consumer.join()
     producer1.join()
-    # producer2.join()
+    producer2.join()
+    relay_server.join()
+    # ai1.join()
+    # ai2.join()
 
     print("bye")

@@ -24,10 +24,6 @@ def start_prediction(action_queue, event_queue, has_logout, id):
     while not has_logout.is_set():
         queue_full.wait()
         lk.acquire()
-        if len(rs.cached_data[id]) == 1:
-            lk.release()
-            break
-
         data = rs.cached_data[id][0:constant.ROW_SIZE]
         rs.cached_data[id] = rs.cached_data[id][constant.ROW_SIZE:]
         queue_full.clear()
