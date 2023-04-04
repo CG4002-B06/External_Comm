@@ -4,6 +4,7 @@ import relay.relay_server as rs
 from constants.Actions import Action
 from constants import constant
 from constants.constant import END_GAME
+import random
 import csv
 
 class bcolors:
@@ -57,9 +58,11 @@ def start_prediction(action_queue, event_queue, has_logout, id):
             print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
         if predicted_result == Action.NONE:
             event_queue.put(json.dumps({
-                "p1": None, "p2": None,
+                "id": random.randint(0, 9999),
+                "p1": None,
+                "p2": None,
                 f"p{id + 1}": constant.REDO_ACTION_MSG
-                }))
+            }))
         else:
             action_queue.put([predicted_result, {}])
     print(f"ai{id} exit")

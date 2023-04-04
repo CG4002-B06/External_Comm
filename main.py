@@ -1,4 +1,5 @@
 import json
+import random
 import threading
 from queue import Queue
 from threading import Event, Thread
@@ -32,8 +33,11 @@ if __name__ == '__main__':
     producer2 = Producer(event_queue, constant.PUBLISH_TOPIC_E, has_logout)
     producer2.start()
     print("producer 2 starts")
-    event_queue.put(json.dumps({"p1": constant.WAIT_SENSOR_INIT_MESSAGE,
-                    "p2": constant.WAIT_SENSOR_INIT_MESSAGE}))
+    event_queue.put(json.dumps({
+        "id": random.randint(0, 9999),
+        "p1": constant.WAIT_SENSOR_INIT_MESSAGE,
+        "p2": constant.WAIT_SENSOR_INIT_MESSAGE
+    }))
 
     consumer = Consumer(grenadeQuery_queue, has_logout)
     consumer.start()
@@ -61,6 +65,7 @@ if __name__ == '__main__':
     print("game engine start")
 
     event_queue.put(json.dumps({
+        "id": random.randint(0, 9999),
         "p1": constant.INIT_COMPLETE_MSG,
         "p2": constant.INIT_COMPLETE_MSG
     }))

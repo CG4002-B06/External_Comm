@@ -1,4 +1,5 @@
 import json
+import random
 from socket import *
 from threading import Thread, Lock, Event, Semaphore
 import struct
@@ -105,16 +106,23 @@ class RelayServer(Thread):
 
     def handle_beetle_disconnection(self, id, connection_socket):
         print(f"{id} disconnected")
-        self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                         f"p{id}": constant.SENSOR_DISCONNECT_MSG}))
+        self.event_queue.put(json.dumps({
+            "id": random.randint(0, 9999),
+            "p1": None,
+            "p2": None,
+            f"p{id}": constant.SENSOR_DISCONNECT_MSG}))
         lk[id - 1].acquire()
         cached_data[id - 1].clear()
         lk[id - 1].release()
 
         while connection_socket.recv(2) != f'R{id}'.encode():
             pass
-        self.event_queue.put(json.dumps({"p1": None, "p2": None,
-                                         f"p{id}": constant.SENSOR_RECONNECT_MSG}))
+        self.event_queue.put(json.dumps({
+            "id": random.randint(0, 9999),
+            "p1": None,
+            "p2": None,
+            f"p{id}": constant.SENSOR_RECONNECT_MSG
+        }))
         print(f"connection {id} is back")
 
     def run(self):
