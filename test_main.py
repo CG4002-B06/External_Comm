@@ -71,8 +71,7 @@ if __name__ == '__main__':
         "p2": constant.INIT_COMPLETE_MSG
     }))
 
-
-    for i in range(0, 10):
+    while True:
         action_queues[0].put([Action(input()), {"p1": True}])
         action_queues[1].put([Action(input()), {"p2": True}])
 

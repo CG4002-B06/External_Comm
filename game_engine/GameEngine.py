@@ -47,10 +47,11 @@ class GameEngine(Thread):
 
                     player_object["isHit"] = query_result.get(player_id, True)
                     self.players[i].process_action(action, query_result)
-                player_object.update(self.players[i].get_status())
                 player_objects.append(player_object)
-
             print(query_result)
+            player_objects[0].update(self.players[0].get_status())
+            player_objects[1].update(self.players[1].get_status())
+
             # check against eval server
             if self.eval_client is not None:
                 expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
