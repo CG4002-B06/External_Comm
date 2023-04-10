@@ -10,4 +10,3 @@ eval_sever/bin/*
 eval_sever/include/*
 eval_sever/lib/*
 .env
-data/*
