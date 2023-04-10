@@ -22,14 +22,15 @@ def write_to_file(filename, counter, data):
         for row in data:
             writer.writerow(row)
 
-    print(f"{bcolors.OKBLUE}{bcolors.BOLD}Data Collected {counter}{bcolors.ENDC}")
+    print(f"{bcolors.OKCYAN}{bcolors.BOLD}Data Collected {counter}{bcolors.ENDC}")
 
 
 def start_prediction(action_queue, event_queue, has_logout, id):
     lk = rs.lk[id]
     queue_full = rs.queue_full[id]
-    action = 'shield'
-    counter = 810
+    action = Action.LOGOUT  
+    counter = 15
+    round_ = 0
 
     while not has_logout.is_set():
         queue_full.wait()
@@ -43,16 +44,17 @@ def start_prediction(action_queue, event_queue, has_logout, id):
             break
 
         predicted_result = predict(data)
-
-        if predicted_result != action:
-            filename = f"{action}_{id}_{counter}.csv"
+        if predicted_result != Action.NONE and predicted_result != action:
+            filename = f"{action.value}_{id}_{counter}.csv"
             write_to_file(filename, counter, data)
             counter += 1
 
-        # if id == 0:
-        #     print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
-        # else:
-        #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        round_ += 1
+        if id == 0:
+            print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}_{round_}{bcolors.ENDC}")
+        else:
+            print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}_{round_}{bcolors.ENDC}")
+        
         # if predicted_result == Action.NONE:
         #     event_queue.put(json.dumps({
         #         "id": random.randint(0, 9999),

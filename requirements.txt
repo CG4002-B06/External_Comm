@@ -9,8 +9,6 @@ PyNaCl==1.5.0
 python-dotenv==0.21.1
 sshtunnel==0.4.0
 
-pip~=22.3.1
-pytz~=2022.7.1
 numpy~=1.24.2
 setuptools~=49.2.1
 pandas~=1.5.3
@@ -18,4 +16,3 @@ python-dateutil~=2.8.2
 six~=1.16.0
 readerwriterlock~=1.0.9
 attrs~=22.2.0
-pynq~=3.0.1
