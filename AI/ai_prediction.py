@@ -28,8 +28,8 @@ def write_to_file(filename, counter, data):
 def start_prediction(action_queue, event_queue, has_logout, id):
     lk = rs.lk[id]
     queue_full = rs.queue_full[id]
-    action = Action.GRENADE  
-    counter = 20
+    action = Action.LOGOUT  
+    counter = 30
     round_ = 0
 
     while not has_logout.is_set():
