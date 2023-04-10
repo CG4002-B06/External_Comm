@@ -15,11 +15,21 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
 
+def write_to_file(filename, counter, data):
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+
+        for row in data:
+            writer.writerow(row)
+
+    print(f"{bcolors.OKBLUE}{bcolors.BOLD}Data Collected {counter}{bcolors.ENDC}")
+
+
 def start_prediction(action_queue, event_queue, has_logout, id):
     lk = rs.lk[id]
     queue_full = rs.queue_full[id]
-    # action = 'shield'
-    # counter = 810
+    action = 'shield'
+    counter = 810
 
     while not has_logout.is_set():
         queue_full.wait()
@@ -32,33 +42,24 @@ def start_prediction(action_queue, event_queue, has_logout, id):
         if data == [END_GAME]:
             break
 
-
-        # filename = f"{action}_{id}_{counter}.csv"
-        # with open(filename, 'w', newline='') as csvfile:
-        #     writer = csv.writer(csvfile)
-        #
-        #     for row in data:
-        #         writer.writerow(row)
-        # if id == 0:
-        #     print(f"{bcolors.OKBLUE}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
-        #     print(f"{bcolors.OKBLUE}{bcolors.BOLD}{data}{bcolors.ENDC}")
-        # else:
-        #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}Write {counter}{bcolors.ENDC}")
-        #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}{data}{bcolors.ENDC}")
-        # counter += 1
-
         predicted_result = predict(data)
-        if id == 0:
-            print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
-        else:
-            print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
-        if predicted_result == Action.NONE:
-            event_queue.put(json.dumps({
-                "id": random.randint(0, 9999),
-                "p1": None,
-                "p2": None,
-                f"p{id + 1}": constant.REDO_ACTION_MSG
-            }))
-        else:
-            action_queue.put([predicted_result, {}])
+
+        if predicted_result != action:
+            filename = f"{action}_{id}_{counter}.csv"
+            write_to_file(filename, counter, data)
+            counter += 1
+
+        # if id == 0:
+        #     print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        # else:
+        #     print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}{bcolors.ENDC}")
+        # if predicted_result == Action.NONE:
+        #     event_queue.put(json.dumps({
+        #         "id": random.randint(0, 9999),
+        #         "p1": None,
+        #         "p2": None,
+        #         f"p{id + 1}": constant.REDO_ACTION_MSG
+        #     }))
+        # else:
+        #     action_queue.put([predicted_result, {}])
     print(f"ai{id} exit")
