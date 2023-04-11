@@ -28,7 +28,7 @@ CONSUMER_TOPIC = "QueryGrenade"
 MAX_INFLIGHT = 9999
 
 # Game State Constant
-HAS_EVAL = False
+HAS_EVAL = True
 ONE_PLAYER = False
 END_GAME = "_GAME_ENDING_"
 

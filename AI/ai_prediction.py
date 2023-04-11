@@ -44,24 +44,24 @@ def start_prediction(action_queue, event_queue, has_logout, id):
             break
 
         predicted_result = predict(data)
-        if predicted_result != Action.NONE and predicted_result != action:
-            filename = f"{action.value}_{id}_{counter}.csv"
-            write_to_file(filename, counter, data)
-            counter += 1
+        #if predicted_result != Action.NONE and predicted_result != action:
+        #    filename = f"{action.value}_{id}_{counter}.csv"
+        #    write_to_file(filename, counter, data)
+        #    counter += 1
 
         round_ += 1
         if id == 0:
             print(f"{bcolors.OKBLUE}{bcolors.BOLD}{predicted_result}_{round_}{bcolors.ENDC}")
         else:
             print(f"{bcolors.OKGREEN}{bcolors.BOLD}{predicted_result}_{round_}{bcolors.ENDC}")
-        
-        # if predicted_result == Action.NONE:
-        #     event_queue.put(json.dumps({
-        #         "id": random.randint(0, 9999),
-        #         "p1": None,
-        #         "p2": None,
-        #         f"p{id + 1}": constant.REDO_ACTION_MSG
-        #     }))
-        # else:
-        #     action_queue.put([predicted_result, {}])
+
+        if predicted_result == Action.NONE:
+            event_queue.put(json.dumps({
+                 "id": random.randint(0, 9999),
+                 "p1": None,
+                 "p2": None,
+                 f"p{id + 1}": constant.REDO_ACTION_MSG
+                 }))
+        else:
+            action_queue.put([predicted_result, {}])
     print(f"ai{id} exit")
