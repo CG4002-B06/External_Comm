@@ -52,6 +52,12 @@ class GameEngine(Thread):
             player_objects[0].update(self.players[0].get_status())
             player_objects[1].update(self.players[1].get_status())
 
+            with self.action_queues[0].mutex:
+                self.action_queues[0].queue.clear()
+
+            with self.action_queues[1].mutex:
+                self.action_queues[1].queue.clear()
+
             # check against eval server
             if self.eval_client is not None:
                 expected_status = json.loads(self.eval_client.send_and_receive(self.__build_eval_payload()))
