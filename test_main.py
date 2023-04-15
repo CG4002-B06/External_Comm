@@ -35,7 +35,6 @@ if __name__ == '__main__':
     producer2.start()
     print("producer 2 starts")
     event_queue.put(json.dumps({
-        "id": random.randint(0, 9999),
         "p1": constant.WAIT_SENSOR_INIT_MESSAGE,
         "p2": constant.WAIT_SENSOR_INIT_MESSAGE
     }))
@@ -66,7 +65,6 @@ if __name__ == '__main__':
     print("game engine start")
 
     event_queue.put(json.dumps({
-        "id": random.randint(0, 9999),
         "p1": constant.INIT_COMPLETE_MSG,
         "p2": constant.INIT_COMPLETE_MSG
     }))
