@@ -57,7 +57,6 @@ def start_prediction(action_queue, event_queue, has_logout, id):
 
         if predicted_result == Action.NONE:
             event_queue.put(json.dumps({
-                 "id": random.randint(0, 9999),
                  "p1": None,
                  "p2": None,
                  f"p{id + 1}": constant.REDO_ACTION_MSG
